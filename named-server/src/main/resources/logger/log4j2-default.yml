@@ -1,0 +1,12 @@
+Configuration:
+  properties:
+    property:
+      - name: app
+        value: named-server
+
+  Loggers:
+    Root:
+      level: DEBUG
+      includeLocation: true
+      AppenderRef:
+        - ref: CONSOLE

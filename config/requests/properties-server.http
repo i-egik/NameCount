@@ -1,0 +1,19 @@
+### Create property
+GRPC {{properties-server-url}}/properties.Service/UpdScopedValue
+
+{
+  "namespace": "site",
+  "property": {
+    "key": "key",
+    "value": "value"
+  }
+}
+
+### Get property
+GRPC {{properties-server-url}}/properties.Service/GetScopedValue
+
+{
+  "namespace": "site",
+  "key": "key"
+}
+

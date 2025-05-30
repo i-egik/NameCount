@@ -1,0 +1,12 @@
+*.iml
+target/
+*/*.iml
+*/target/
+*/log.*
+/.idea/
+**/.flattened-pom.xml
+.flattened-pom.xml
+**/pom.xml.versionsBackup
+pom.xml.versionsBackup
+.kafka
+.pg

@@ -1,0 +1,47 @@
+services:
+  postgres:
+    image: postgres
+    container_name: postgres
+    restart: always
+    ports:
+      - '25432:5432'
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - ${VOLUME}/.pg:/var/lib/postgresql/data
+      - ${VOLUME}/config/postgresql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+  redis:
+    image: redis
+    ports:
+      - '6379:6379'
+    healthcheck:
+      test: 'redis-cli ping || exit 1'
+      interval: 5s
+      timeout: 5s
+      retries: 3
+  named-service:
+    image: named-service
+    build:
+      context: ./
+      dockerfile: ./named-server/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "8081:8080"
+    environment:
+      REDIS_HOSTNAME: redis
+      DATABASE_HOSTNAME: postgres:5432
+    healthcheck:
+      test: [ "CMD-SHELL", "wget http://localhost:8080/actuator/health" ]
+      interval: 3s
+      timeout: 2s
+      retries: 15
+

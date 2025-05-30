@@ -1,0 +1,26 @@
+spring:
+  application:
+    name: properties-service
+  r2dbc:
+    pool:
+      enabled: true
+      initial-size: 10
+      max-size: 10
+    properties:
+      schema: properties
+    url: r2dbc:postgresql://${POSTGRES_HOSTNAME:postgres:5432}/cdc
+    username: postgres
+    password: postgres
+  data:
+    redis:
+      host: ${REDIS_HOSTNAME:redis}
+logging:
+  level:
+    root: DEBUG
+  charset:
+    console: UTF-8
+
+app:
+  properties:
+    cached: true
+    cached-expires: 60s
