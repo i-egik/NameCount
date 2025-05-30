@@ -1,4 +1,4 @@
-package ru.pastor.templates.properties.configuration;
+package ru.pastor.templates.named.configuration;
 
 import io.r2dbc.pool.ConnectionPool;
 import io.r2dbc.pool.ConnectionPoolConfiguration;

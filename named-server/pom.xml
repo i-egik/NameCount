@@ -234,7 +234,7 @@
               <goal>repackage</goal>
             </goals>
             <configuration>
-              <mainClass>ru.pastor.templates.properties.server.Main</mainClass>
+              <mainClass>ru.pastor.templates.named.server.Main</mainClass>
               <layers>
                 <enabled>true</enabled>
               </layers>

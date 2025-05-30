@@ -1,4 +1,4 @@
-package ru.pastor.templates.properties.configuration;
+package ru.pastor.templates.named.configuration;
 
 import io.lettuce.core.ClientOptions;
 import io.lettuce.core.resource.ClientResources;

@@ -8,7 +8,7 @@ spring:
       max-size: 10
     properties:
       schema: properties
-    url: r2dbc:postgresql://${POSTGRES_HOSTNAME:postgres:5432}/cdc
+    url: r2dbc:postgresql://${POSTGRES_HOSTNAME:postgres:5432}/named_count
     username: postgres
     password: postgres
   data:

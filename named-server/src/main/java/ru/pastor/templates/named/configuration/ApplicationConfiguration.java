@@ -1,4 +1,4 @@
-package ru.pastor.templates.properties.configuration;
+package ru.pastor.templates.named.configuration;
 
 import io.grpc.BindableService;
 import io.grpc.Metadata;
@@ -22,10 +22,10 @@ import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 @Configuration
-@Import({DatabaseConfiguration.class, PropertiesConfiguration.class, RedisConfiguration.class})
+@Import({DatabaseConfiguration.class, RedisConfiguration.class})
 @ComponentScan({
-  "ru.pastor.templates.properties.service",
-  "ru.pastor.templates.properties.repository"
+  "ru.pastor.templates.named.service",
+  "ru.pastor.templates.named.repository"
 })
 public class ApplicationConfiguration {
 

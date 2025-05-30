@@ -1,4 +1,4 @@
-package ru.pastor.templates.properties.server;
+package ru.pastor.templates.named.server;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -8,7 +8,7 @@ import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.r2dbc.R2dbcAutoConfiguration;
 import org.springframework.boot.autoconfigure.validation.ValidationAutoConfiguration;
 import org.springframework.context.annotation.Import;
-import ru.pastor.templates.properties.configuration.ApplicationConfiguration;
+import ru.pastor.templates.named.configuration.ApplicationConfiguration;
 
 @SpringBootApplication(exclude = {
   DataSourceAutoConfiguration.class,
