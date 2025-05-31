@@ -1,0 +1,89 @@
+syntax = "proto3";
+
+option java_package = "ru.pastor.templates.named.server.grpc";
+option java_multiple_files = true;
+package named;
+
+message CountFilter {
+  int64 user_id = 1;
+  oneof filter {
+    string name = 2;
+    uint64 id = 4;
+  }
+}
+
+message CountPutRequest {
+  int64 user_id = 1;
+  uint64 delta = 2;
+  oneof filter {
+    string name = 3;
+    uint64 id = 4;
+  }
+}
+
+message CountValue {
+  Status status = 1;
+  uint64 id = 2;
+  string name = 3;
+  oneof val {
+    int64 value = 4;
+    Error error = 5;
+  }
+}
+
+message Error {
+  string int64 = 1;
+  string message = 2;
+}
+
+enum Status {
+  FAILURE = 0;
+  SUCCESS = 1;
+  NOT_FOUND = 2;
+}
+
+
+service CountService {
+  //Получение значение конкретного счетчика
+  rpc Get(CountFilter) returns (CountValue);
+  //Получение всех счетчиков пользователя
+  rpc List(CountFilter) returns (stream CountValue);
+  //Запись значения
+  rpc Put(CountPutRequest) returns(CountValue);
+}
+
+message CatalogueFilter {
+  oneof filter {
+    string name = 1;
+  }
+}
+
+message CatalogueReplyValue {
+  Status status = 1;
+  oneof val {
+    CatalogueInformation value = 2;
+    Error error = 3;
+  }
+}
+
+message CatalogueInformation {
+  uint64 id = 1;
+  string name = 2;
+  string description = 3;
+}
+
+message CataloguePutRequest {
+  oneof filter {
+    uint64 id = 1;
+    string name = 2;
+  }
+  reserved 3, 4, 5, 6, 7;
+  string description = 8;
+}
+
+service CatalogueService {
+  //Получение списка счетчиков
+  rpc List(CatalogueFilter) returns (stream CatalogueReplyValue);
+  //Создание или обновление счетчика
+  rpc Put(CataloguePutRequest) returns (CatalogueReplyValue);
+}
