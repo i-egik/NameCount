@@ -12,8 +12,13 @@ import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.ReactiveRedisOperations;
+import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.data.redis.core.ReactiveStringRedisTemplate;
+import org.springframework.data.redis.serializer.RedisSerializationContext;
+import org.springframework.data.redis.serializer.RedisSerializer;
+import org.springframework.data.redis.serializer.SerializationException;
 
+import java.math.BigInteger;
 import java.time.Duration;
 
 @Slf4j
@@ -37,7 +42,32 @@ public class RedisConfiguration {
   }
 
   @Bean
-  public ReactiveRedisOperations<String, String> redisOperations(ReactiveRedisConnectionFactory factory) {
+  public ReactiveRedisOperations<String, String> textRedisOperations(ReactiveRedisConnectionFactory factory) {
     return new ReactiveStringRedisTemplate(factory);
+  }
+
+  @Bean
+  public ReactiveRedisOperations<String, Long> longRedisOperations(ReactiveRedisConnectionFactory factory) {
+    return new ReactiveRedisTemplate<>(factory, RedisSerializationContext.<String, Long>newSerializationContext()
+      .key(RedisSerializer.string())
+      .value(RedisSerializationContext.SerializationPair.fromSerializer(LongSerializer.INSTANCE))
+      .build());
+  }
+
+  private static final class LongSerializer implements RedisSerializer<Long> {
+    private static final LongSerializer INSTANCE = new LongSerializer();
+
+    @Override
+    public byte[] serialize(Long value) throws SerializationException {
+      if (value == null) {
+        return null;
+      }
+      return BigInteger.valueOf(value).toByteArray();
+    }
+
+    @Override
+    public Long deserialize(byte[] bytes) throws SerializationException {
+      return new BigInteger(bytes).longValue();
+    }
   }
 }
