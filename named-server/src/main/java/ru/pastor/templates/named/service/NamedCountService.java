@@ -2,7 +2,6 @@ package ru.pastor.templates.named.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 import ru.pastor.templates.named.cache.NamedCache;
 
@@ -16,17 +15,17 @@ public interface NamedCountService {
 
   @Slf4j
   @RequiredArgsConstructor
-  @Service("NamedCountService.Standard")
-  class Standard implements NamedCountService {
-    private final NamedCache<String, Long> cache;
+  final class Standard implements NamedCountService {
+    private final NamedCache<String, Long> values;
+    private final NamedCache<String, Long> catalogue;
 
-    private static String key(String name, long userId) {
-      return String.format("named:%s:%d", name, userId);
+    private Mono<String> key(String name, long userId) {
+      return catalogue.get(name).map(v -> String.format("named:%d:%d", userId, v));
     }
 
     @Override
     public Mono<Long> get(String name, long userId) {
-      return cache.get(key(name, userId));
+      return key(name, userId).flatMap(values::get);
     }
 
     @Override
@@ -36,9 +35,8 @@ public interface NamedCountService {
 
     @Override
     public Mono<Long> increment(String name, long userId, long delta) {
-      String key = key(name, userId);
-      return cache.get(key)
-        .flatMap(value -> cache.update(key, value + delta).thenReturn(value + delta));
+      return key(name, userId).flatMap(k -> values.get(k)
+        .flatMap(value -> values.update(k, value + delta).thenReturn(value + delta)));
     }
   }
 }

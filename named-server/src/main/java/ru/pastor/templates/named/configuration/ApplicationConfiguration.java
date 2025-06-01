@@ -8,6 +8,7 @@ import io.grpc.ServerCall;
 import io.grpc.ServerCallHandler;
 import io.grpc.ServerInterceptor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.event.ApplicationFailedEvent;
 import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.context.annotation.Bean;
@@ -15,6 +16,8 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.event.EventListener;
+import ru.pastor.templates.named.cache.NamedCache;
+import ru.pastor.templates.named.service.NamedCountService;
 
 import java.io.IOException;
 import java.util.List;
@@ -22,12 +25,19 @@ import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 @Configuration
-@Import({DatabaseConfiguration.class, RedisConfiguration.class})
+@Import({DatabaseConfiguration.class, RedisConfiguration.class, CacheConfiguration.class})
 @ComponentScan({
   "ru.pastor.templates.named.service",
   "ru.pastor.templates.named.repository"
 })
 public class ApplicationConfiguration {
+
+  @Bean
+  public NamedCountService namedCountService(
+    @Qualifier("NamedCache.Values") NamedCache<String, Long> values,
+    @Qualifier("NamedCache.Catalogue") NamedCache<String, Long> catalogue) {
+    return new NamedCountService.Standard(values, catalogue);
+  }
 
   @Bean
   public ServerInterceptor loggingInterceptor() {
@@ -78,14 +88,14 @@ public class ApplicationConfiguration {
   private static final class LogInterceptor implements ServerInterceptor {
     @Override
     public <I, O> ServerCall.Listener<I> interceptCall(ServerCall<I, O> serverCall, Metadata metadata,
-                                                                 ServerCallHandler<I, O> next) {
+                                                       ServerCallHandler<I, O> next) {
       logMessage(serverCall);
       ServerCall.Listener<I> delegate = next.startCall(serverCall, metadata);
       return delegate;
     }
 
     private <I, O> void logMessage(ServerCall<I, O> call) {
-        log.debug("call: {}", call.getMethodDescriptor().getFullMethodName());
+      log.debug("call: {}", call.getMethodDescriptor().getFullMethodName());
     }
   }
 }

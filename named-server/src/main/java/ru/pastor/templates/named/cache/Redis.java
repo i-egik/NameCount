@@ -3,13 +3,11 @@ package ru.pastor.templates.named.cache;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.ReactiveRedisOperations;
-import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 @Slf4j
 @RequiredArgsConstructor
-@Service("NamedCache.Redis")
-public class Redis implements NamedCache<String, Long> {
+public final class Redis implements NamedCache<String, Long> {
   private final ReactiveRedisOperations<String, Long> operations;
 
   @Override

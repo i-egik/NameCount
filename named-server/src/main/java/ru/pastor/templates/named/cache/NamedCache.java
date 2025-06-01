@@ -11,6 +11,7 @@ import reactor.core.publisher.Signal;
 import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiFunction;
 
 public interface NamedCache<K, V> {
 
@@ -20,20 +21,20 @@ public interface NamedCache<K, V> {
 
   Mono<Void> update(K key, V value);
 
-  final class Empty<K, V> implements NamedCache<K, V> {
+  interface All<K, V> {
+    Mono<Void> all(BiFunction<K, V, Void> entry);
+  }
+
+  @SuppressWarnings("AbstractClassName")
+  abstract class ReadOnly<K, V> implements NamedCache<K, V> {
 
     @Override
-    public Mono<V> get(K key) {
+    public final Mono<Void> delete(K key) {
       return Mono.empty();
     }
 
     @Override
-    public Mono<Void> delete(K key) {
-      return Mono.empty();
-    }
-
-    @Override
-    public Mono<Void> update(K key, V value) {
+    public final Mono<Void> update(K key, V value) {
       return Mono.empty();
     }
   }
@@ -45,7 +46,8 @@ public interface NamedCache<K, V> {
     public Local(String name,
                  Duration expires,
                  MeterRegistry registry,
-                 NamedCache<K, V> delegate) {
+                 NamedCache<K, V> delegate,
+                 All<K, V> all) {
       this.cache = CacheBuilder.newBuilder()
         .recordStats()
         .weakValues()
@@ -60,6 +62,12 @@ public interface NamedCache<K, V> {
         .register(registry);
       Gauge.builder("Cache_" + name + "_total_load_time", () -> cache.stats().totalLoadTime())
         .register(registry);
+      if (all != null) {
+        all.all((k, v) -> {
+          cache.put(k, v);
+          return null;
+        }).subscribe();
+      }
     }
 
     @Override

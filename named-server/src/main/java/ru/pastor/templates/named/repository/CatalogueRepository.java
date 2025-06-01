@@ -8,6 +8,7 @@ import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.reactive.TransactionalOperator;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import ru.pastor.templates.named.repository.entity.CatalogueEntity;
 
 import java.time.LocalDateTime;
@@ -15,6 +16,8 @@ import java.time.LocalDateTime;
 public interface CatalogueRepository {
 
   Flux<CatalogueEntity> counters(Filter filter);
+
+  Mono<CatalogueEntity> get(String name);
 
   record Filter() {
 
@@ -43,6 +46,16 @@ public interface CatalogueRepository {
         .sql("SELECT id, name, description, created, updated FROM counter_catalogue")
         .map(Postgres::map)
         .all()
+        .as(tx::transactional);
+    }
+
+    @Override
+    public Mono<CatalogueEntity> get(String name) {
+      return client
+        .sql("SELECT id, name, description, created, updated FROM counter_catalogue WHERE name = :name")
+        .bind("name", name)
+        .map(Postgres::map)
+        .one()
         .as(tx::transactional);
     }
   }

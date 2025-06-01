@@ -30,7 +30,7 @@ public class RedisConfiguration {
   @Primary
   public ReactiveRedisConnectionFactory redisConnectionFactory(@Value("${spring.data.redis.host}") String cacheHost,
                                                                @Value("${spring.data.redis.port:6379}") int cachePort,
-                                                               @Value("${spring.data.redis.db:14}") int cacheDatabase) {
+                                                               @Value("${spring.data.redis.db:13}") int cacheDatabase) {
     var lettuceClientConfiguration = LettuceClientConfiguration.builder()
       .clientOptions(ClientOptions.builder().autoReconnect(true).build())
       .commandTimeout(Duration.ofMillis(COMMAND_TIMEOUT))
