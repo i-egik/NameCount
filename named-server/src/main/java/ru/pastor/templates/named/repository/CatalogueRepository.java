@@ -32,7 +32,7 @@ public interface CatalogueRepository {
 
     private static CatalogueEntity map(Row row, RowMetadata metadata) {
       return new CatalogueEntity(
-        row.get("id", Long.class),
+        row.get("id", Integer.class),
         row.get("name", String.class),
         row.get("description", String.class),
         row.get("created", LocalDateTime.class),
@@ -55,7 +55,7 @@ public interface CatalogueRepository {
         .sql("SELECT id, name, description, created, updated FROM counter_catalogue WHERE name = :name")
         .bind("name", name)
         .map(Postgres::map)
-        .one()
+        .first()
         .as(tx::transactional);
     }
   }

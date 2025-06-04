@@ -7,21 +7,35 @@ import reactor.core.publisher.Mono;
 
 @Slf4j
 @RequiredArgsConstructor
-public final class Redis implements NamedCache<String, Long> {
-  private final ReactiveRedisOperations<String, Long> operations;
+public final class Redis implements NamedCache<String, Integer> {
+  private final ReactiveRedisOperations<String, Integer> operations;
 
   @Override
-  public Mono<Long> get(String key) {
-    return operations.opsForValue().get(key);
+  public Mono<Integer> get(String key) {
+    return operations.opsForValue().get(key)
+      .onErrorResume(e -> {
+        log.error("Error getting value for key {}: {}", key, e.getMessage());
+        return Mono.empty();
+      });
   }
 
   @Override
   public Mono<Void> delete(String key) {
-    return operations.opsForValue().delete(key).then();
+    return operations.opsForValue().delete(key)
+      .onErrorResume(e -> {
+        log.error("Error deleting key {}: {}", key, e.getMessage());
+        return Mono.just(false);
+      })
+      .then();
   }
 
   @Override
-  public Mono<Void> update(String key, Long value) {
-    return operations.opsForValue().set(key, value).then();
+  public Mono<Void> update(String key, Integer value) {
+    return operations.opsForValue().set(key, value)
+      .onErrorResume(e -> {
+        log.error("Error updating key {} with value {}: {}", key, value, e.getMessage());
+        return Mono.just(false);
+      })
+      .then();
   }
 }

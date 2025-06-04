@@ -7,8 +7,9 @@ import io.r2dbc.spi.ConnectionFactory;
 import io.r2dbc.spi.ConnectionFactoryOptions;
 import io.r2dbc.spi.Option;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.r2dbc.R2dbcProperties;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.r2dbc.connection.R2dbcTransactionManager;
@@ -17,24 +18,23 @@ import org.springframework.transaction.ReactiveTransactionManager;
 import org.springframework.transaction.reactive.TransactionalOperator;
 
 @Configuration
+@EnableConfigurationProperties(R2dbcProperties.class)
 public class DatabaseConfiguration {
-  @Bean
-  @ConfigurationProperties("spring.r2dbc")
-  public R2dbcProperties properties() {
-    return new R2dbcProperties();
-  }
 
   @Bean
+  @ConditionalOnMissingBean(ReactiveTransactionManager.class)
   public ReactiveTransactionManager transactionManager(ConnectionFactory connectionFactory) {
     return new R2dbcTransactionManager(connectionFactory);
   }
 
   @Bean
+  @ConditionalOnMissingBean(DatabaseClient.class)
   public DatabaseClient databaseClient(ConnectionFactory factory) {
     return DatabaseClient.builder().connectionFactory(factory).build();
   }
 
   @Bean
+  @ConditionalOnMissingBean(TransactionalOperator.class)
   public TransactionalOperator transactionalOperator(ReactiveTransactionManager txManager) {
     return TransactionalOperator.create(txManager);
   }
@@ -62,8 +62,9 @@ public class DatabaseConfiguration {
   }
 
   @Bean
-  public ConnectionFactory connectionFactory(@Value("${spring.application.name:properties-service}") String name) {
-    return getConnectionFactory(properties(), name);
+  @ConditionalOnMissingBean(ConnectionFactory.class)
+  public ConnectionFactory connectionFactory(R2dbcProperties properties,
+                                             @Value("${spring.application.name:named-count}") String name) {
+    return getConnectionFactory(properties, name);
   }
-
 }

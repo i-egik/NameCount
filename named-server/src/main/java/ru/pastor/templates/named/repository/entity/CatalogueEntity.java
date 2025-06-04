@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 
 @Builder(toBuilder = true)
 public record CatalogueEntity(
-  Long id,
+  Integer id,
   String name,
   String description,
   LocalDateTime created,

@@ -9,6 +9,8 @@ import org.springframework.boot.autoconfigure.r2dbc.R2dbcAutoConfiguration;
 import org.springframework.boot.autoconfigure.validation.ValidationAutoConfiguration;
 import org.springframework.context.annotation.Import;
 import ru.pastor.templates.named.configuration.ApplicationConfiguration;
+import ru.pastor.templates.named.configuration.CacheConfiguration;
+import ru.pastor.templates.named.configuration.RedisConfiguration;
 
 @SpringBootApplication(exclude = {
   DataSourceAutoConfiguration.class,
@@ -17,7 +19,7 @@ import ru.pastor.templates.named.configuration.ApplicationConfiguration;
   ValidationAutoConfiguration.class,
   R2dbcAutoConfiguration.class
 })
-@Import(ApplicationConfiguration.class)
+@Import({ApplicationConfiguration.class, RedisConfiguration.class, CacheConfiguration.class})
 public class Main {
   public static void main(String[] args) {
     SpringApplication.run(Main.class, args);

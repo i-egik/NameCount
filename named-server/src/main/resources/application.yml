@@ -1,6 +1,6 @@
 spring:
   application:
-    name: properties-service
+    name: named-count
   r2dbc:
     pool:
       enabled: true

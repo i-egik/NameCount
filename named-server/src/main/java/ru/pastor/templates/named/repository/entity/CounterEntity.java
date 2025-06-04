@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 
 @Builder(toBuilder = true)
 public record CounterEntity(
-  Long id,
+  Integer id,
   CatalogueEntity catalogue,
   long userId,
   long value,

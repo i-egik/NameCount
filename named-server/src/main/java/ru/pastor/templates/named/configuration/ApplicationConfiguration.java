@@ -25,7 +25,7 @@ import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 @Configuration
-@Import({DatabaseConfiguration.class, RedisConfiguration.class, CacheConfiguration.class})
+@Import(DatabaseConfiguration.class)
 @ComponentScan({
   "ru.pastor.templates.named.service",
   "ru.pastor.templates.named.repository"

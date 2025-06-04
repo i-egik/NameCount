@@ -73,7 +73,7 @@ public interface NamedCache<K, V> {
     @Override
     public Mono<V> get(K key) {
       return CacheMono.lookup(k -> Mono.justOrEmpty(cache.getIfPresent(key)).map(Signal::next), key)
-        .onCacheMissResume(() -> delegate.get(key))
+        .onCacheMissResume(() -> delegate.get(key).cache())
         .andWriteWith((k, signal) -> Mono.fromRunnable(() -> Optional.ofNullable(signal.get())
           .ifPresent(value -> cache.put(key, value))));
     }

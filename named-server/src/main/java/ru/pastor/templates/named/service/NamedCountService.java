@@ -36,6 +36,7 @@ public interface NamedCountService {
     @Override
     public Mono<Long> increment(String name, long userId, long delta) {
       return key(name, userId).flatMap(k -> values.get(k)
+        .defaultIfEmpty(0L)
         .flatMap(value -> values.update(k, value + delta).thenReturn(value + delta)));
     }
   }
