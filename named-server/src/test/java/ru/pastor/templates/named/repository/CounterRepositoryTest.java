@@ -29,12 +29,12 @@ class CounterRepositoryTest extends BasisTestSuit {
   void setUpTest() {
     super.setUp();
     // Clear existing data
-    Mono.from(databaseClient.sql("DELETE FROM counter_values").then()).block();
-    Mono.from(databaseClient.sql("DELETE FROM counter_catalogue").then()).block();
+    Mono.from(databaseClient.sql("DELETE FROM named.counter_values").then()).block();
+    Mono.from(databaseClient.sql("DELETE FROM named.counter_catalogue").then()).block();
 
     // Insert test catalogue
     catalogueId = Objects.requireNonNull(Mono.from(databaseClient.sql(
-        "INSERT INTO counter_catalogue (name, description, created, updated) " +
+        "INSERT INTO named.counter_catalogue (name, description, created, updated) " +
           "VALUES ('test-counter', 'Test Counter', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) "
       )
       .filter(statement -> statement.returnGeneratedValues("id"))
@@ -61,7 +61,7 @@ class CounterRepositoryTest extends BasisTestSuit {
   void testGetCounter() {
     // Create a counter first
     Mono.from(databaseClient.sql(
-        "INSERT INTO counter_values (counter_id, user_id, \"value\", created, updated) " +
+        "INSERT INTO named.counter_values (counter_id, user_id, \"value\", created, updated) " +
           "VALUES (:counterId, :userId, :value, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"
       )
       .bind("counterId", catalogueId)
@@ -94,7 +94,7 @@ class CounterRepositoryTest extends BasisTestSuit {
   void testUpdateCounter() {
     // Create a counter first
     Mono.from(databaseClient.sql(
-        "INSERT INTO counter_values (counter_id, user_id, \"value\", created, updated) " +
+        "INSERT INTO named.counter_values (counter_id, user_id, \"value\", created, updated) " +
           "VALUES (:counterId, :userId, :value, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"
       )
       .bind("counterId", catalogueId)

@@ -38,9 +38,10 @@ public abstract class BasisTestSuit {
   @BeforeEach
   protected void setUp() {
     if (databaseClient != null) {
+      Mono.from(databaseClient.sql("CREATE SCHEMA IF NOT EXISTS named").then()).block();
       // Create counter_catalogue table
       Mono.from(databaseClient.sql(
-        "CREATE TABLE IF NOT EXISTS counter_catalogue (" +
+        "CREATE TABLE IF NOT EXISTS named.counter_catalogue (" +
           "  id SERIAL PRIMARY KEY," +
           "  name VARCHAR NOT NULL," +
           "  description VARCHAR NOT NULL," +
@@ -52,7 +53,7 @@ public abstract class BasisTestSuit {
 
       // Create counter_values table
       Mono.from(databaseClient.sql(
-        "CREATE TABLE IF NOT EXISTS counter_values (" +
+        "CREATE TABLE IF NOT EXISTS named.counter_values (" +
           "  id SERIAL PRIMARY KEY," +
           "  counter_id BIGINT NOT NULL," +
           "  user_id BIGINT NOT NULL," +
@@ -60,7 +61,7 @@ public abstract class BasisTestSuit {
           "  created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP," +
           "  updated TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP," +
           "  CONSTRAINT unique_counter_user UNIQUE (counter_id, user_id)," +
-          "  CONSTRAINT fk_counter FOREIGN KEY (counter_id) REFERENCES counter_catalogue(id)" +
+          "  CONSTRAINT fk_counter FOREIGN KEY (counter_id) REFERENCES named.counter_catalogue(id)" +
           ")"
       ).then()).block();
     } else {
@@ -73,11 +74,11 @@ public abstract class BasisTestSuit {
     if (databaseClient != null) {
       // Drop tables and schema
       Mono.from(databaseClient.sql(
-        "DROP TABLE IF EXISTS counter_values"
+        "DROP TABLE IF EXISTS named.counter_values"
       ).then()).block();
 
       Mono.from(databaseClient.sql(
-        "DROP TABLE IF EXISTS counter_catalogue"
+        "DROP TABLE IF EXISTS named.counter_catalogue"
       ).then()).block();
     } else {
       System.out.println("[DEBUG_LOG] DatabaseClient is null in tearAllDown");

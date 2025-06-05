@@ -57,6 +57,8 @@ public class RedisConfiguration {
     return new ReactiveRedisTemplate<>(factory, RedisSerializationContext.<String, Integer>newSerializationContext()
       .key(RedisSerializer.string())
       .value(RedisSerializationContext.SerializationPair.fromSerializer(IntegerSerializer.INSTANCE))
+      .hashKey(RedisSerializer.string())
+      .hashValue(RedisSerializationContext.SerializationPair.fromSerializer(IntegerSerializer.INSTANCE))
       .build());
   }
 

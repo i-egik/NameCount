@@ -9,6 +9,7 @@ import io.grpc.ServerCallHandler;
 import io.grpc.ServerInterceptor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationFailedEvent;
 import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.context.annotation.Bean;
@@ -56,8 +57,10 @@ public class ApplicationConfiguration {
   }
 
   @Bean
-  public GrpcServer grpcServer(final List<BindableService> services) {
-    return new GrpcServer(30323, services, List.of(), 5, 30, false);
+  public GrpcServer grpcServer(@Value("${app.port:30323}") int port,
+                               final List<BindableService> services,
+                               final List<ServerInterceptor> interceptors) {
+    return new GrpcServer(port, services, interceptors, 5, 30, false);
   }
 
   @Slf4j
@@ -85,7 +88,7 @@ public class ApplicationConfiguration {
     public void ready() throws IOException {
       this.server.start();
       if (log.isInfoEnabled()) {
-        log.info("Server started, listening on {}", this.server.getPort());
+        log.info("GRPC started on port {}", this.server.getPort());
       }
     }
 
@@ -101,8 +104,7 @@ public class ApplicationConfiguration {
     public <I, O> ServerCall.Listener<I> interceptCall(ServerCall<I, O> serverCall, Metadata metadata,
                                                        ServerCallHandler<I, O> next) {
       logMessage(serverCall);
-      ServerCall.Listener<I> delegate = next.startCall(serverCall, metadata);
-      return delegate;
+      return next.startCall(serverCall, metadata);
     }
 
     private <I, O> void logMessage(ServerCall<I, O> call) {

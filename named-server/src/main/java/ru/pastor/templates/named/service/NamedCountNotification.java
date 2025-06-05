@@ -28,7 +28,7 @@ public interface NamedCountNotification {
   @Service("NamedStream")
   class Default implements NamedCountNotification {
     private static final String STREAM_KEY = "counter_updates";
-    private final ReactiveRedisTemplate<String, String> template;
+    private final ReactiveRedisTemplate<String, Integer> template;
     private final CounterRepository repository;
 
     @EventListener(ApplicationReadyEvent.class)

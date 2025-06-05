@@ -7,7 +7,7 @@ spring:
       initial-size: 10
       max-size: 10
     properties:
-      schema: properties
+      schema: named
     url: r2dbc:postgresql://${POSTGRES_HOSTNAME:postgres:5432}/named_count
     username: postgres
     password: postgres
@@ -21,6 +21,4 @@ logging:
     console: UTF-8
 
 app:
-  properties:
-    cached: true
-    cached-expires: 60s
+  port: 30323

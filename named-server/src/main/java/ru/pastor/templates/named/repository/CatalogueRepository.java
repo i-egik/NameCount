@@ -86,7 +86,7 @@ public interface CatalogueRepository {
     @Override
     public Flux<CatalogueEntity> counters(Filter filter) {
       return client
-        .sql("SELECT id, name, description, created, updated FROM counter_catalogue")
+        .sql("SELECT id, name, description, created, updated FROM named.counter_catalogue")
         .map(Postgres::map)
         .all()
         .as(tx::transactional);
@@ -100,7 +100,7 @@ public interface CatalogueRepository {
     @Override
     public Mono<CatalogueEntity> get(String name) {
       return client
-        .sql("SELECT id, name, description, created, updated FROM counter_catalogue WHERE name = :name")
+        .sql("SELECT id, name, description, created, updated FROM named.counter_catalogue WHERE name = :name")
         .bind("name", name)
         .map(Postgres::map)
         .first()
@@ -109,7 +109,7 @@ public interface CatalogueRepository {
 
     @Override
     public Mono<CatalogueEntity> create(String name, String description) {
-      return client.sql("INSERT INTO counter_catalogue(name, description) VALUES(:name, :description)")
+      return client.sql("INSERT INTO named.counter_catalogue(name, description) VALUES(:name, :description)")
         .bind("name", name)
         .bind("description", description)
         .filter(stmt -> stmt.returnGeneratedValues("id"))

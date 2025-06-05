@@ -25,11 +25,11 @@ class CatalogueRepositoryTest extends BasisTestSuit {
   protected void setUp() {
     super.setUp();
     // Clear existing data
-    Mono.from(databaseClient.sql("DELETE FROM counter_catalogue").then()).block();
+    Mono.from(databaseClient.sql("DELETE FROM named.counter_catalogue").then()).block();
 
     // Insert test data
     Mono.from(databaseClient.sql(
-      "INSERT INTO counter_catalogue (name, description, created, updated) " +
+      "INSERT INTO named.counter_catalogue (name, description, created, updated) " +
         "VALUES ('test-counter', 'Test Counter', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"
     ).then()).block();
   }
@@ -75,7 +75,7 @@ class CatalogueRepositoryTest extends BasisTestSuit {
   void testCountersWithMultipleEntries() {
     // Insert another test entry
     Mono.from(databaseClient.sql(
-      "INSERT INTO counter_catalogue (name, description, created, updated) " +
+      "INSERT INTO named.counter_catalogue (name, description, created, updated) " +
         "VALUES ('another-counter', 'Another Test Counter', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"
     ).then()).block();
 

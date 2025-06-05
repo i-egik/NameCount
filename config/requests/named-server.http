@@ -1,0 +1,15 @@
+### Create catalogue record
+GRPC {{named-server-url}}/named.Service/Put
+
+{
+  "name": "for_test",
+  "description": "Для тестов"
+}
+
+### List records
+GRPC {{named-server-url}}/named.Service/List
+
+{
+  "name": "for_test"
+}
+

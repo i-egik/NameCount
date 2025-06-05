@@ -113,8 +113,8 @@ public interface CounterRepository {
       return client
         .sql("SELECT cv.id, cv.counter_id, cv.user_id, cv.\"value\", cv.created, cv.updated, " +
           "cc.name, cc.description, cc.created as catalogue_created, cc.updated as catalogue_updated " +
-          "FROM counter_values cv " +
-          "JOIN counter_catalogue cc ON cv.counter_id = cc.id " +
+          "FROM named.counter_values cv " +
+          "JOIN named.counter_catalogue cc ON cv.counter_id = cc.id " +
           "WHERE cv.counter_id = :counterId AND cv.user_id = :userId")
         .bind("counterId", counterId)
         .bind("userId", userId)
@@ -131,7 +131,7 @@ public interface CounterRepository {
     public Mono<CounterEntity> create(long counterId, long userId, long initialValue) {
       LocalDateTime now = LocalDateTime.now();
       return client
-        .sql("INSERT INTO counter_values (counter_id, user_id, \"value\", created, updated) " +
+        .sql("INSERT INTO named.counter_values (counter_id, user_id, \"value\", created, updated) " +
           "VALUES (:counterId, :userId, :value, :created, :updated) ")
         .bind("counterId", counterId)
         .bind("userId", userId)
@@ -153,7 +153,7 @@ public interface CounterRepository {
     @Override
     public Mono<CounterEntity> update(long counterId, long userId, long newValue) {
       return client
-        .sql("UPDATE counter_values SET \"value\" = :value, updated = :updated " +
+        .sql("UPDATE named.counter_values SET \"value\" = :value, updated = :updated " +
           "WHERE counter_id = :counterId AND user_id = :userId ")
         .bind("counterId", counterId)
         .bind("userId", userId)

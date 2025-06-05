@@ -11,8 +11,6 @@ import ru.pastor.templates.named.cache.NamedCache;
 import ru.pastor.templates.named.repository.CatalogueRepository;
 
 import static org.mockito.Mockito.atLeast;
-import static org.mockito.Mockito.atMost;
-import static org.mockito.Mockito.atMostOnce;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -43,7 +41,7 @@ class NamedCountServiceTest extends BasisTestSuit {
       try {
         // Insert test data into counter_catalogue
         Mono.from(databaseClient.sql(
-          "INSERT INTO counter_catalogue (name, description, created, updated) " +
+          "INSERT INTO named.counter_catalogue (name, description, created, updated) " +
             "VALUES ('test-counter', 'Test Counter', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"
         ).then()).block();
       } catch (Exception e) {

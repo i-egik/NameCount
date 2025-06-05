@@ -28,7 +28,7 @@ class NamedServerCatalogueServiceGrpcTest extends BasisTestSuit {
       try {
         // Insert test data into counter_catalogue
         Mono.from(databaseClient.sql(
-          "INSERT INTO counter_catalogue (name, description, created, updated) " +
+          "INSERT INTO named.counter_catalogue (name, description, created, updated) " +
             "VALUES ('test-catalogue', 'Test Catalogue', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"
         ).then()).block();
       } catch (Exception e) {
