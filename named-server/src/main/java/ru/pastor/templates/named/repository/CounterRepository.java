@@ -13,26 +13,78 @@ import ru.pastor.templates.named.repository.entity.CounterEntity;
 
 import java.time.LocalDateTime;
 
+/**
+ * Репозиторий для работы со счетчиками в базе данных.
+ * Предоставляет методы для получения, создания и обновления счетчиков.
+ */
 public interface CounterRepository {
 
+  /**
+   * Получает счетчик по идентификатору счетчика и пользователя.
+   *
+   * @param counterId идентификатор счетчика
+   * @param userId    идентификатор пользователя
+   * @return объект счетчика в виде Mono или пустой Mono, если счетчик не найден
+   */
   Mono<CounterEntity> get(long counterId, long userId);
 
+  /**
+   * Создает новый счетчик с указанным начальным значением.
+   *
+   * @param counterId     идентификатор счетчика
+   * @param userId        идентификатор пользователя
+   * @param initialValue  начальное значение счетчика
+   * @return созданный объект счетчика в виде Mono
+   */
   Mono<CounterEntity> create(long counterId, long userId, long initialValue);
 
+  /**
+   * Обновляет значение существующего счетчика.
+   *
+   * @param counterId идентификатор счетчика
+   * @param userId    идентификатор пользователя
+   * @param newValue  новое значение счетчика
+   * @return обновленный объект счетчика в виде Mono или пустой Mono, если счетчик не найден
+   */
   Mono<CounterEntity> update(long counterId, long userId, long newValue);
 
+  /**
+   * Обновляет существующий счетчик или создает новый, если счетчик не найден.
+   *
+   * @param counterId идентификатор счетчика
+   * @param userId    идентификатор пользователя
+   * @param newValue  новое значение счетчика
+   * @return обновленный или созданный объект счетчика в виде Mono
+   */
   default Mono<CounterEntity> updateOrCreate(long counterId, long userId, long newValue) {
     return update(counterId, userId, newValue)
       .switchIfEmpty(create(counterId, userId, newValue));
   }
 
+  /**
+   * Реализация репозитория счетчиков для PostgreSQL с использованием реактивного доступа к данным.
+   */
   @Slf4j
   @RequiredArgsConstructor
   @Service("CounterRepository.Postgres")
   class Postgres implements CounterRepository {
+    /**
+     * Клиент для работы с базой данных в реактивном стиле.
+     */
     private final DatabaseClient client;
+
+    /**
+     * Оператор транзакций для обеспечения атомарности операций.
+     */
     private final TransactionalOperator tx;
 
+    /**
+     * Преобразует строку результата запроса в объект CounterEntity.
+     *
+     * @param row      строка результата запроса
+     * @param metadata метаданные строки
+     * @return объект CounterEntity с данными из строки результата
+     */
     private static CounterEntity map(Row row, RowMetadata metadata) {
       CatalogueEntity catalogue = new CatalogueEntity(
         row.get("counter_id", Long.class).intValue(),
@@ -52,6 +104,10 @@ public interface CounterRepository {
         .build();
     }
 
+    /**
+     * {@inheritDoc}
+     * Получает счетчик из базы данных, объединяя данные из таблиц counter_values и counter_catalogue.
+     */
     @Override
     public Mono<CounterEntity> get(long counterId, long userId) {
       return client
@@ -67,6 +123,10 @@ public interface CounterRepository {
         .as(tx::transactional);
     }
 
+    /**
+     * {@inheritDoc}
+     * Создает новую запись счетчика в базе данных и возвращает созданный объект.
+     */
     @Override
     public Mono<CounterEntity> create(long counterId, long userId, long initialValue) {
       LocalDateTime now = LocalDateTime.now();
@@ -85,6 +145,11 @@ public interface CounterRepository {
         .as(tx::transactional);
     }
 
+    /**
+     * {@inheritDoc}
+     * Обновляет значение счетчика в базе данных и возвращает обновленный объект.
+     * Если счетчик не найден, создает новый с указанным значением.
+     */
     @Override
     public Mono<CounterEntity> update(long counterId, long userId, long newValue) {
       return client

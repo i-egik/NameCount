@@ -5,11 +5,25 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.ReactiveRedisOperations;
 import reactor.core.publisher.Mono;
 
+/**
+ * Реализация интерфейса NamedCache для работы с Redis.
+ * Предоставляет реактивный доступ к операциям с кэшем Redis для хранения пар ключ-значение.
+ * Обрабатывает ошибки Redis и логирует их, возвращая пустые Mono в случае сбоев.
+ */
 @Slf4j
 @RequiredArgsConstructor
 public final class Redis implements NamedCache<String, Integer> {
+  /**
+   * Операции Redis для реактивной работы с парами ключ-значение.
+   * Используется для выполнения базовых операций get, set и delete.
+   */
   private final ReactiveRedisOperations<String, Integer> operations;
 
+  /**
+   * {@inheritDoc}
+   * Получает значение из Redis по ключу.
+   * В случае ошибки логирует сообщение и возвращает пустой Mono.
+   */
   @Override
   public Mono<Integer> get(String key) {
     return operations.opsForValue().get(key)
@@ -19,6 +33,11 @@ public final class Redis implements NamedCache<String, Integer> {
       });
   }
 
+  /**
+   * {@inheritDoc}
+   * Удаляет значение из Redis по ключу.
+   * В случае ошибки логирует сообщение и возвращает пустой Mono.
+   */
   @Override
   public Mono<Void> delete(String key) {
     return operations.opsForValue().delete(key)
@@ -29,6 +48,11 @@ public final class Redis implements NamedCache<String, Integer> {
       .then();
   }
 
+  /**
+   * {@inheritDoc}
+   * Обновляет значение в Redis по ключу.
+   * В случае ошибки логирует сообщение и возвращает пустой Mono.
+   */
   @Override
   public Mono<Void> update(String key, Integer value) {
     return operations.opsForValue().set(key, value)
