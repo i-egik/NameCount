@@ -31,9 +31,9 @@ public interface CounterRepository {
   /**
    * Создает новый счетчик с указанным начальным значением.
    *
-   * @param counterId     идентификатор счетчика
-   * @param userId        идентификатор пользователя
-   * @param initialValue  начальное значение счетчика
+   * @param counterId    идентификатор счетчика
+   * @param userId       идентификатор пользователя
+   * @param initialValue начальное значение счетчика
    * @return созданный объект счетчика в виде Mono
    */
   Mono<CounterEntity> create(long counterId, long userId, long initialValue);

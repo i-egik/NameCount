@@ -40,10 +40,10 @@ public final class Redis implements NamedCache<String, Integer> {
    */
   @Override
   public Mono<Void> delete(String key) {
-    return operations.opsForValue().delete(key)
+    return operations.delete(key)
       .onErrorResume(e -> {
         log.error("Error deleting key {}: {}", key, e.getMessage());
-        return Mono.just(false);
+        return Mono.just(0L);
       })
       .then();
   }

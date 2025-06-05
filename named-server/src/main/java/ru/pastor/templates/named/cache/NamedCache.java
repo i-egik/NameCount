@@ -4,12 +4,9 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
-import reactor.cache.CacheMono;
 import reactor.core.publisher.Mono;
-import reactor.core.publisher.Signal;
 
 import java.time.Duration;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
 
@@ -113,11 +110,11 @@ public interface NamedCache<K, V> {
     /**
      * Создает новый локальный кэш с указанными параметрами.
      *
-     * @param name      имя кэша для метрик
-     * @param expires   время жизни элементов кэша
-     * @param registry  реестр метрик
-     * @param delegate  делегат для получения отсутствующих значений
-     * @param all       источник для предварительной загрузки всех значений
+     * @param name     имя кэша для метрик
+     * @param expires  время жизни элементов кэша
+     * @param registry реестр метрик
+     * @param delegate делегат для получения отсутствующих значений
+     * @param all      источник для предварительной загрузки всех значений
      */
     public Local(String name,
                  Duration expires,
@@ -153,10 +150,13 @@ public interface NamedCache<K, V> {
      */
     @Override
     public Mono<V> get(K key) {
-      return CacheMono.lookup(k -> Mono.justOrEmpty(cache.getIfPresent(key)).map(Signal::next), key)
-        .onCacheMissResume(() -> delegate.get(key).cache())
-        .andWriteWith((k, signal) -> Mono.fromRunnable(() -> Optional.ofNullable(signal.get())
-          .ifPresent(value -> cache.put(key, value))));
+      V cachedValue = cache.getIfPresent(key);
+      if (cachedValue != null) {
+        return Mono.just(cachedValue);
+      }
+
+      return delegate.get(key)
+        .doOnNext(value -> cache.put(key, value));
     }
 
     /**

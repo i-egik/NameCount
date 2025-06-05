@@ -11,27 +11,27 @@ import lombok.Builder;
  */
 @Builder(toBuilder = true)
 public record CounterModel(
-    /**
-     * Уникальный идентификатор счетчика.
-     * Может быть null для новых счетчиков.
-     */
-    Long id,
+  /**
+   * Уникальный идентификатор счетчика.
+   * Может быть null для новых счетчиков.
+   */
+  Long id,
 
-    /**
-     * Информация о счетчике из каталога.
-     * Не может быть null.
-     */
-    @NotNull CatalogueModel.Information information,
+  /**
+   * Информация о счетчике из каталога.
+   * Не может быть null.
+   */
+  @NotNull CatalogueModel.Information information,
 
-    /**
-     * Идентификатор пользователя, которому принадлежит счетчик.
-     * Не может быть null.
-     */
-    @NotNull Long userId,
+  /**
+   * Идентификатор пользователя, которому принадлежит счетчик.
+   * Не может быть null.
+   */
+  @NotNull Long userId,
 
-    /**
-     * Текущее значение счетчика.
-     * Должно быть положительным числом.
-     */
-    @Positive long value) {
+  /**
+   * Текущее значение счетчика.
+   * Должно быть положительным числом.
+   */
+  @Positive long value) {
 }

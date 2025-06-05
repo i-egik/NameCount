@@ -11,17 +11,17 @@ import lombok.Builder;
  */
 @Builder(toBuilder = true)
 public record CatalogueModel(
-    /**
-     * Основная информация о счетчике (идентификатор и имя).
-     * Не может быть null.
-     */
-    @NotNull Information information,
+  /**
+   * Основная информация о счетчике (идентификатор и имя).
+   * Не может быть null.
+   */
+  @NotNull Information information,
 
-    /**
-     * Описание счетчика.
-     * Может быть null.
-     */
-    String description) {
+  /**
+   * Описание счетчика.
+   * Может быть null.
+   */
+  String description) {
 
   /**
    * Внутренняя модель данных для хранения основной информации о счетчике.
@@ -31,16 +31,16 @@ public record CatalogueModel(
   @SuppressWarnings("UnnecessaryModifier")
   @Builder(toBuilder = true)
   public static record Information(
-      /**
-       * Уникальный идентификатор счетчика в каталоге.
-       * Может быть null для новых элементов каталога.
-       */
-      Long id,
+    /**
+     * Уникальный идентификатор счетчика в каталоге.
+     * Может быть null для новых элементов каталога.
+     */
+    Long id,
 
-      /**
-       * Имя счетчика.
-       * Не может быть пустым или null.
-       */
-      @NotBlank String name) {
+    /**
+     * Имя счетчика.
+     * Не может быть пустым или null.
+     */
+    @NotBlank String name) {
   }
 }

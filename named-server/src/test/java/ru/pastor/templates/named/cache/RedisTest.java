@@ -27,7 +27,7 @@ class RedisTest {
     when(operations.opsForValue()).thenReturn(valueOperations);
     when(valueOperations.get(anyString())).thenReturn(Mono.just(10));
     when(valueOperations.set(anyString(), anyInt())).thenReturn(Mono.just(true));
-    when(valueOperations.delete(anyString())).thenReturn(Mono.just(true));
+    when(operations.delete(anyString())).thenReturn(Mono.just(1L));
 
     redis = new Redis(operations);
   }
@@ -62,8 +62,7 @@ class RedisTest {
       .verifyComplete();
 
     // Verify that the operations were called
-    verify(operations).opsForValue();
-    verify(valueOperations).delete("key1");
+    verify(operations).delete("key1");
   }
 
   @Test
@@ -97,14 +96,13 @@ class RedisTest {
   @Test
   void testDeleteWithError() {
     // Setup mock to return an error
-    when(valueOperations.delete("error-key")).thenReturn(Mono.error(new RuntimeException("Test error")));
+    when(operations.delete("error-key")).thenReturn(Mono.error(new RuntimeException("Test error")));
 
     // Test deleting a value with an error - should return empty Mono due to error handling
     StepVerifier.create(redis.delete("error-key"))
       .verifyComplete();
 
     // Verify that the operations were called
-    verify(operations).opsForValue();
-    verify(valueOperations).delete("error-key");
+    verify(operations).delete("error-key");
   }
 }

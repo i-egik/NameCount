@@ -25,13 +25,13 @@ public class CacheConfiguration {
 
   @Bean("NamedCache.Values")
   public NamedCache<String, Integer> valuesNamedCache(MeterRegistry registry,
-                                                   @Qualifier("NamedCache.Redis") NamedCache<String, Integer> redisCache) {
+                                                      @Qualifier("NamedCache.Redis") NamedCache<String, Integer> redisCache) {
     return new NamedCache.Local<>("values", Duration.ofHours(1), registry, redisCache, null);
   }
 
   @Bean("NamedCache.Catalogue")
   public NamedCache<String, Integer> catalogueNamedCache(MeterRegistry registry,
-                                                      CatalogueRepository repository) {
+                                                         CatalogueRepository repository) {
     return new NamedCache.Local<>("catalogue", Duration.ofHours(4), registry, new NamedCache.ReadOnly<>() {
       @Override
       public Mono<Integer> get(String key) {
