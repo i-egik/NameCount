@@ -3,11 +3,11 @@ package ru.pastor.templates.named.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import ru.pastor.templates.named.server.grpc.CatalogueFilter;
 import ru.pastor.templates.named.server.grpc.CatalogueInformation;
 import ru.pastor.templates.named.server.grpc.CataloguePutRequest;
+import ru.pastor.templates.named.server.grpc.CatalogueReplyList;
 import ru.pastor.templates.named.server.grpc.CatalogueReplyValue;
 import ru.pastor.templates.named.server.grpc.Error;
 import ru.pastor.templates.named.server.grpc.ReactorCatalogueServiceGrpc;
@@ -37,37 +37,37 @@ public class NamedServerCatalogueServiceGrpc extends ReactorCatalogueServiceGrpc
    * @return поток ответов, содержащих информацию о счетчиках и статусы операций
    */
   @Override
-  public Flux<CatalogueReplyValue> list(CatalogueFilter request) {
+  public Mono<CatalogueReplyList> list(CatalogueFilter request) {
     if (request.hasName()) {
       return namedCatalogueService.get(request.getName())
-        .map(model -> CatalogueReplyValue.newBuilder()
-          .setValue(CatalogueInformation.newBuilder()
+        .map(model -> CatalogueReplyList.newBuilder()
+          .setStatus(Status.SUCCESS)
+          .addValues(CatalogueInformation.newBuilder()
             .setId(model.information().id())
             .setName(model.information().name())
             .build())
-          .setStatus(Status.SUCCESS)
           .build())
-        .flux()
-        .switchIfEmpty(Flux.just(CatalogueReplyValue.newBuilder()
+        .switchIfEmpty(Mono.just(CatalogueReplyList.newBuilder()
           .setStatus(Status.NOT_FOUND)
           .build()))
-        .onErrorResume(throwable -> Flux.just(CatalogueReplyValue.newBuilder()
+        .onErrorResume(throwable -> Mono.just(CatalogueReplyList.newBuilder()
           .setStatus(Status.FAILURE)
           .setError(Error.newBuilder().setMessage(throwable.getMessage()).build())
           .build()));
     } else {
       return namedCatalogueService.list()
-        .map(model -> CatalogueReplyValue.newBuilder()
-          .setValue(CatalogueInformation.newBuilder()
-            .setId(model.information().id())
-            .setName(model.information().name())
-            .build())
-          .setStatus(Status.SUCCESS)
+        .map(model -> CatalogueInformation.newBuilder()
+          .setId(model.information().id())
+          .setName(model.information().name())
           .build())
-        .switchIfEmpty(Flux.just(CatalogueReplyValue.newBuilder()
+        .collectList().map(values -> CatalogueReplyList.newBuilder()
+          .setStatus(Status.SUCCESS)
+          .addAllValues(values)
+          .build())
+        .switchIfEmpty(Mono.just(CatalogueReplyList.newBuilder()
           .setStatus(Status.NOT_FOUND)
           .build()))
-        .onErrorResume(throwable -> Flux.just(CatalogueReplyValue.newBuilder()
+        .onErrorResume(throwable -> Mono.just(CatalogueReplyList.newBuilder()
           .setStatus(Status.FAILURE)
           .setError(Error.newBuilder().setMessage(throwable.getMessage()).build())
           .build()));

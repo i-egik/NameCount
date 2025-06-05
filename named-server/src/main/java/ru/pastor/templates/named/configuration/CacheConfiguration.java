@@ -19,7 +19,7 @@ import java.time.Duration;
 public class CacheConfiguration {
 
   @Bean("NamedCache.Redis")
-  public NamedCache<String, Integer> redisNamedCache(ReactiveRedisOperations<String, Integer> operations) {
+  public NamedCache<String, Integer> redisNamedCache(ReactiveRedisOperations<String, Number> operations) {
     return new Redis(operations);
   }
 

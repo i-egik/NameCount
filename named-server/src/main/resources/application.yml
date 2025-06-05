@@ -1,6 +1,8 @@
 spring:
   application:
     name: named-count
+    admin:
+      enabled: true
   r2dbc:
     pool:
       enabled: true
@@ -14,9 +16,12 @@ spring:
   data:
     redis:
       host: ${REDIS_HOSTNAME:redis}
+  jmx:
+    enabled: true
+
 logging:
   level:
-    root: INFO
+    root: DEBUG
   charset:
     console: UTF-8
 

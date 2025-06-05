@@ -22,8 +22,8 @@ import static org.mockito.Mockito.when;
 
 class RedisTest {
 
-  private ReactiveRedisOperations<String, Integer> operations;
-  private ReactiveValueOperations<String, Integer> valueOperations;
+  private ReactiveRedisOperations<String, Number> operations;
+  private ReactiveValueOperations<String, Number> valueOperations;
   private Redis redis;
 
   @BeforeEach

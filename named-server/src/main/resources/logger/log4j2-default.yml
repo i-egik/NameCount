@@ -6,7 +6,7 @@ Configuration:
 
   Loggers:
     Root:
-      level: INFO
+      level: DEBUG
       includeLocation: true
       AppenderRef:
         - ref: CONSOLE

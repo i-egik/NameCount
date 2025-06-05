@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import ru.pastor.templates.named.server.grpc.CountFilter;
-import ru.pastor.templates.named.server.grpc.CountPutRequest;
+import ru.pastor.templates.named.server.grpc.CountIncrementRequest;
 import ru.pastor.templates.named.server.grpc.CountValue;
 import ru.pastor.templates.named.server.grpc.Error;
 import ru.pastor.templates.named.server.grpc.ReactorCountServiceGrpc;
@@ -60,7 +60,7 @@ public class NamedServerCountServiceGrpc extends ReactorCountServiceGrpc.CountSe
    */
   @Override
   public Flux<CountValue> list(CountFilter request) {
-    return super.list(request);
+    return Flux.empty();
   }
 
   /**
@@ -70,7 +70,7 @@ public class NamedServerCountServiceGrpc extends ReactorCountServiceGrpc.CountSe
    * @return ответ, содержащий новое значение счетчика и статус операции
    */
   @Override
-  public Mono<CountValue> put(CountPutRequest request) {
+  public Mono<CountValue> increment(CountIncrementRequest request) {
     return namedCountService.increment(request.getName(), request.getUserId(), request.getDelta())
       .map(v -> CountValue.newBuilder()
         .setName(request.getName())

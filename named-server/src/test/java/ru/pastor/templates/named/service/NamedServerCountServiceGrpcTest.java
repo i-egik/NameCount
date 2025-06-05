@@ -7,7 +7,7 @@ import org.springframework.r2dbc.core.DatabaseClient;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 import ru.pastor.templates.named.server.grpc.CountFilter;
-import ru.pastor.templates.named.server.grpc.CountPutRequest;
+import ru.pastor.templates.named.server.grpc.CountIncrementRequest;
 import ru.pastor.templates.named.server.grpc.Status;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -108,14 +108,14 @@ class NamedServerCountServiceGrpcTest extends BasisTestSuit {
     }
 
     // Create a request to increment the counter
-    CountPutRequest request = CountPutRequest.newBuilder()
+    CountIncrementRequest request = CountIncrementRequest.newBuilder()
       .setName("test-counter")
       .setUserId(1)
       .setDelta(5)
       .build();
 
     // Test incrementing a counter
-    StepVerifier.create(grpcService.put(request))
+    StepVerifier.create(grpcService.increment(request))
       .assertNext(response -> {
         assertNotNull(response);
         assertNotNull(response.getStatus());
@@ -146,14 +146,14 @@ class NamedServerCountServiceGrpcTest extends BasisTestSuit {
     }
 
     // Create a request for a non-existent counter
-    CountPutRequest request = CountPutRequest.newBuilder()
+    CountIncrementRequest request = CountIncrementRequest.newBuilder()
       .setName("non-existent-counter")
       .setUserId(1)
       .setDelta(5)
       .build();
 
     // Test incrementing a non-existent counter
-    StepVerifier.create(grpcService.put(request))
+    StepVerifier.create(grpcService.increment(request))
       .assertNext(response -> {
         assertNotNull(response);
         assertNotNull(response.getStatus());
@@ -174,15 +174,7 @@ class NamedServerCountServiceGrpcTest extends BasisTestSuit {
     CountFilter request = CountFilter.newBuilder()
       .setUserId(1)
       .build();
-
-    try {
-      // This will throw an exception, which is expected
-      grpcService.list(request).subscribe();
-      // If we get here, the test should fail
-      assert false : "Expected an exception but none was thrown";
-    } catch (Exception e) {
-      // Expected exception, test passes
-      assert e instanceof io.grpc.StatusRuntimeException : "Expected StatusRuntimeException but got " + e.getClass().getName();
-    }
+    StepVerifier.create(grpcService.list(request))
+      .verifyComplete();
   }
 }

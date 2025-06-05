@@ -95,10 +95,14 @@ public interface NamedCountService {
      */
     @Override
     public Mono<Long> increment(String name, long userId, long delta) {
+      if (delta < 0 || delta > Integer.MAX_VALUE || delta == 0) {
+        delta = 1;
+      }
+      var finalDelta = delta;
       return key(name, userId)
-        .flatMap(k -> values.increment(k, (int) delta))
+        .flatMap(k -> values.increment(k, (int) finalDelta))
         .flatMap(newValue -> catalogue.get(name)
-          .flatMap(ci -> notification.update(userId, ci, newValue)
+          .flatMap(ci -> notification.update(userId, ci, newValue.longValue())
             .thenReturn(newValue.longValue())));
     }
   }

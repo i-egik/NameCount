@@ -17,7 +17,7 @@ public final class Redis implements NamedCache<String, Integer> {
    * Операции Redis для реактивной работы с парами ключ-значение.
    * Используется для выполнения базовых операций get, set и delete.
    */
-  private final ReactiveRedisOperations<String, Integer> operations;
+  private final ReactiveRedisOperations<String, Number> operations;
 
   /**
    * {@inheritDoc}
@@ -27,6 +27,7 @@ public final class Redis implements NamedCache<String, Integer> {
   @Override
   public Mono<Integer> get(String key) {
     return operations.opsForValue().get(key)
+      .map(Number::intValue)
       .onErrorResume(e -> {
         log.error("Error getting value for key {}: {}", key, e.getMessage());
         return Mono.empty();
@@ -55,7 +56,7 @@ public final class Redis implements NamedCache<String, Integer> {
    */
   @Override
   public Mono<Integer> increment(String key, Integer value) {
-    return operations.opsForValue().increment(key, value)
+    return operations.opsForValue().increment(key, value.longValue())
       .map(Long::intValue)
       .doOnError(e -> log.error("Error updating key {} with value {}: {}", key, value, e.getMessage()));
   }

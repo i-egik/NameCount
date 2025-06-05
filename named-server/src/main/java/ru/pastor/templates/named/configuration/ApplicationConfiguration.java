@@ -3,10 +3,11 @@ package ru.pastor.templates.named.configuration;
 import io.grpc.BindableService;
 import io.grpc.Metadata;
 import io.grpc.Server;
-import io.grpc.ServerBuilder;
 import io.grpc.ServerCall;
 import io.grpc.ServerCallHandler;
 import io.grpc.ServerInterceptor;
+import io.grpc.netty.InternalNettyServerBuilder;
+import io.grpc.netty.NettyServerBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,6 +25,7 @@ import ru.pastor.templates.named.service.NamedCountNotification;
 import ru.pastor.templates.named.service.NamedCountService;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -73,7 +75,10 @@ public class ApplicationConfiguration {
                        long keepAliveTime,
                        long keepAliveTimeout,
                        boolean keepAliveWithoutCalls) {
-      ServerBuilder<? extends ServerBuilder<?>> builder = ServerBuilder.forPort(port);
+      // Use NettyServerBuilder to bind to all interfaces (0.0.0.0) to allow connections from outside the container
+      NettyServerBuilder builder = NettyServerBuilder.forAddress(new InetSocketAddress("0.0.0.0", port));
+      InternalNettyServerBuilder.setStatsEnabled(builder, true);
+      InternalNettyServerBuilder.setTracingEnabled(builder, true);
       Objects.requireNonNull(builder);
       serverInterceptors.forEach(builder::intercept);
       Objects.requireNonNull(builder);

@@ -53,28 +53,28 @@ public class RedisConfiguration {
   }
 
   @Bean
-  public ReactiveRedisTemplate<String, Integer> longRedisOperations(ReactiveRedisConnectionFactory factory) {
-    return new ReactiveRedisTemplate<>(factory, RedisSerializationContext.<String, Integer>newSerializationContext()
+  public ReactiveRedisTemplate<String, Number> longRedisOperations(ReactiveRedisConnectionFactory factory) {
+    return new ReactiveRedisTemplate<>(factory, RedisSerializationContext.<String, Number>newSerializationContext()
       .key(RedisSerializer.string())
-      .value(RedisSerializationContext.SerializationPair.fromSerializer(IntegerSerializer.INSTANCE))
+      .value(RedisSerializationContext.SerializationPair.fromSerializer(NumberSerializer.INSTANCE))
       .hashKey(RedisSerializer.string())
-      .hashValue(RedisSerializationContext.SerializationPair.fromSerializer(IntegerSerializer.INSTANCE))
+      .hashValue(RedisSerializationContext.SerializationPair.fromSerializer(NumberSerializer.INSTANCE))
       .build());
   }
 
-  private static final class IntegerSerializer implements RedisSerializer<Integer> {
-    private static final IntegerSerializer INSTANCE = new IntegerSerializer();
+  private static final class NumberSerializer implements RedisSerializer<Number> {
+    private static final NumberSerializer INSTANCE = new NumberSerializer();
 
     @Override
-    public byte[] serialize(Integer value) throws SerializationException {
+    public byte[] serialize(Number value) throws SerializationException {
       if (value == null) {
         return null;
       }
-      return BigInteger.valueOf(value).toByteArray();
+      return BigInteger.valueOf(value.longValue()).toByteArray();
     }
 
     @Override
-    public Integer deserialize(byte[] bytes) throws SerializationException {
+    public Number deserialize(byte[] bytes) throws SerializationException {
       return new BigInteger(bytes).intValue();
     }
   }

@@ -1,5 +1,5 @@
 ### Create catalogue record
-GRPC {{named-server-url}}/named.Service/Put
+GRPC {{named-server-url}}/named.CatalogueService/Put
 
 {
   "name": "for_test",
@@ -7,9 +7,32 @@ GRPC {{named-server-url}}/named.Service/Put
 }
 
 ### List records
-GRPC {{named-server-url}}/named.Service/List
+GRPC {{named-server-url}}/named.CatalogueService/List
 
 {
   "name": "for_test"
+}
+
+### Increment
+GRPC {{named-server-url}}/named.CountService/Increment
+
+{
+  "name": "for_test",
+  "user_id": 10000
+}
+
+### List
+GRPC {{named-server-url}}/named.CountService/List
+
+{
+  "user_id": 10000
+}
+
+### Get
+GRPC {{named-server-url}}/named.CountService/Get
+
+{
+  "name": "for_test",
+  "user_id": 10000
 }
 

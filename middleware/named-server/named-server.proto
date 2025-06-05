@@ -12,9 +12,9 @@ message CountFilter {
   }
 }
 
-message CountPutRequest {
+message CountIncrementRequest {
   int64 user_id = 1;
-  uint64 delta = 2;
+  optional uint64 delta = 2;
   oneof filter {
     string name = 3;
     uint64 id = 4;
@@ -49,12 +49,20 @@ service CountService {
   //Получение всех счетчиков пользователя
   rpc List(CountFilter) returns (stream CountValue);
   //Запись значения
-  rpc Put(CountPutRequest) returns(CountValue);
+  rpc Increment(CountIncrementRequest) returns(CountValue);
 }
 
 message CatalogueFilter {
   oneof filter {
     string name = 1;
+  }
+}
+
+message CatalogueReplyList {
+  Status status = 1;
+  repeated CatalogueInformation values = 2;
+  oneof val {
+    Error error = 3;
   }
 }
 
@@ -83,7 +91,7 @@ message CataloguePutRequest {
 
 service CatalogueService {
   //Получение списка счетчиков
-  rpc List(CatalogueFilter) returns (stream CatalogueReplyValue);
+  rpc List(CatalogueFilter) returns (CatalogueReplyList);
   //Создание или обновление счетчика
   rpc Put(CataloguePutRequest) returns (CatalogueReplyValue);
 }

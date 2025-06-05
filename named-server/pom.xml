@@ -98,6 +98,10 @@
       <groupId>io.r2dbc</groupId>
       <artifactId>r2dbc-pool</artifactId>
     </dependency>
+    <dependency>
+      <groupId>io.projectreactor</groupId>
+      <artifactId>reactor-core</artifactId>
+    </dependency>
     <!-- GRPC -->
     <dependency>
       <groupId>io.grpc</groupId>
@@ -115,8 +119,19 @@
       </exclusions>
     </dependency>
     <dependency>
-      <groupId>io.projectreactor</groupId>
-      <artifactId>reactor-core</artifactId>
+      <groupId>io.grpc</groupId>
+      <artifactId>grpc-core</artifactId>
+      <version>${grpc.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.grpc</groupId>
+      <artifactId>grpc-census</artifactId>
+      <version>${grpc.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.grpc</groupId>
+      <artifactId>grpc-context</artifactId>
+      <version>${grpc.version}</version>
     </dependency>
     <dependency>
       <groupId>io.grpc</groupId>
@@ -185,6 +200,24 @@
           <artifactId>checker-qual</artifactId>
         </exclusion>
       </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>io.opencensus</groupId>
+      <artifactId>opencensus-impl-lite</artifactId>
+      <version>0.31.1</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.opencensus</groupId>
+      <artifactId>opencensus-impl</artifactId>
+      <version>0.31.1</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.opentelemetry</groupId>
+      <artifactId>opentelemetry-opencensus-shim</artifactId>
+      <version>1.50.0-alpha</version>
+      <scope>runtime</scope>
     </dependency>
 
     <dependency>
