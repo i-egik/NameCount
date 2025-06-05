@@ -17,6 +17,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.event.EventListener;
 import ru.pastor.templates.named.cache.NamedCache;
+import ru.pastor.templates.named.repository.CatalogueRepository;
+import ru.pastor.templates.named.service.NamedCatalogueService;
+import ru.pastor.templates.named.service.NamedCountNotification;
 import ru.pastor.templates.named.service.NamedCountService;
 
 import java.io.IOException;
@@ -34,9 +37,17 @@ public class ApplicationConfiguration {
 
   @Bean
   public NamedCountService namedCountService(
-    @Qualifier("NamedCache.Values") NamedCache<String, Long> values,
-    @Qualifier("NamedCache.Catalogue") NamedCache<String, Long> catalogue) {
-    return new NamedCountService.Standard(values, catalogue);
+    @Qualifier("NamedCache.Values") NamedCache<String, Integer> values,
+    @Qualifier("NamedCache.Catalogue") NamedCache<String, Integer> catalogue,
+    NamedCountNotification notification) {
+    return new NamedCountService.Standard(values, catalogue, notification);
+  }
+
+  @Bean
+  public NamedCatalogueService namedCatalogueService(
+    @Qualifier("NamedCache.Catalogue") NamedCache<String, Integer> catalogue,
+    CatalogueRepository catalogueRepository) {
+    return new NamedCatalogueService.Standard(catalogue, catalogueRepository);
   }
 
   @Bean

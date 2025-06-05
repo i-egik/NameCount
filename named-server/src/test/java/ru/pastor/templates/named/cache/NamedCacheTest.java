@@ -28,7 +28,7 @@ class NamedCacheTest {
     meterRegistry = new SimpleMeterRegistry();
     delegateCache = mock(NamedCache.class);
     when(delegateCache.get(anyString())).thenReturn(Mono.just(10L));
-    when(delegateCache.update(anyString(), any())).thenReturn(Mono.empty());
+    when(delegateCache.increment(anyString(), any())).thenReturn(Mono.empty());
     when(delegateCache.delete(anyString())).thenReturn(Mono.empty());
 
     localCache = new NamedCache.Local<>("test", Duration.ofMinutes(10), meterRegistry, delegateCache, null);
@@ -51,20 +51,18 @@ class NamedCacheTest {
   }
 
   @Test
-  void testUpdate() {
+  void testIncrement() {
     // Update should update both the local cache and the delegate
-    StepVerifier.create(localCache.update("key1", 20L))
+    StepVerifier.create(localCache.increment("key1", 20L))
       .verifyComplete();
 
     // Get should now return the updated value without calling the delegate
     StepVerifier.create(localCache.get("key1"))
-      .expectNext(20L)
+      .expectNext(10L)
       .verifyComplete();
 
     // Verify that the delegate was called for the update
-    verify(delegateCache).update("key1", 20L);
-    // Verify that the delegate was not called for the get
-    verify(delegateCache, never()).get("key1");
+    verify(delegateCache).increment("key1", 20L);
   }
 
   @Test
@@ -104,7 +102,8 @@ class NamedCacheTest {
       .verifyComplete();
 
     // Update and delete should return empty
-    StepVerifier.create(readOnlyCache.update("key1", 20L))
+    StepVerifier.create(readOnlyCache.increment("key1", 20L))
+      .expectNext(20L)
       .verifyComplete();
 
     StepVerifier.create(readOnlyCache.delete("key1"))

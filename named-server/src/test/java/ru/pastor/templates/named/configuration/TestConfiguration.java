@@ -15,9 +15,15 @@ import reactor.core.publisher.Mono;
 import ru.pastor.templates.named.cache.NamedCache;
 import ru.pastor.templates.named.repository.CatalogueRepository;
 import ru.pastor.templates.named.repository.CounterRepository;
+import ru.pastor.templates.named.service.NamedCatalogueService;
+import ru.pastor.templates.named.service.NamedCountNotification;
 import ru.pastor.templates.named.service.NamedCountService;
 
+import java.time.Duration;
+
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -30,6 +36,11 @@ import static org.mockito.Mockito.when;
   CatalogueRepository.Postgres.class
 })
 public class TestConfiguration {
+
+  @Bean
+  public NamedCountNotification notification() {
+    return (userId, counterId, value) -> Mono.empty();
+  }
 
   @Bean
   public R2dbcEntityTemplate r2dbcEntityTemplate(ConnectionFactory connectionFactory) {
@@ -45,45 +56,50 @@ public class TestConfiguration {
   @Bean
   @Primary
   @SuppressWarnings("unchecked")
-  public ReactiveRedisOperations<String, Long> mockRedisOperations() {
+  public ReactiveRedisOperations<String, Integer> mockRedisOperations() {
     return mock(ReactiveRedisOperations.class);
   }
 
   @Bean("NamedCache.Redis")
   @Primary
   @SuppressWarnings("unchecked")
-  public NamedCache<String, Long> mockRedisCache() {
-    NamedCache<String, Long> mock = mock(NamedCache.class);
-    when(mock.get(anyString())).thenReturn(Mono.just(1L));
-    when(mock.update(anyString(), any())).thenReturn(Mono.empty());
+  public NamedCache<String, Integer> mockRedisCache() {
+    NamedCache<String, Integer> mock = mock(NamedCache.class);
+    when(mock.get(anyString())).thenReturn(Mono.just(1));
+    when(mock.increment(anyString(), anyInt()))
+      .thenAnswer(i -> Mono.just(((int)i.getArgument(1)) + 1));
     when(mock.delete(anyString())).thenReturn(Mono.empty());
     return mock;
   }
 
   @Bean("NamedCache.Values")
-  @SuppressWarnings("unchecked")
-  public NamedCache<String, Long> mockValuesCache() {
-    NamedCache<String, Long> mock = mock(NamedCache.class);
-    when(mock.get(anyString())).thenReturn(Mono.just(10L));
-    when(mock.update(anyString(), any())).thenReturn(Mono.empty());
-    when(mock.delete(anyString())).thenReturn(Mono.empty());
-    return mock;
+  public NamedCache<String, Integer> valuesNamedCache(MeterRegistry registry,
+                                                      @Qualifier("NamedCache.Redis") NamedCache<String, Integer> redisCache) {
+    return new NamedCache.Local<>("values", Duration.ofHours(1), registry, redisCache, null);
   }
 
   @Bean("NamedCache.Catalogue")
   @SuppressWarnings("unchecked")
-  public NamedCache<String, Long> mockCatalogueCache() {
-    NamedCache<String, Long> mock = mock(NamedCache.class);
-    when(mock.get(anyString())).thenReturn(Mono.just(1L));
-    when(mock.update(anyString(), any())).thenReturn(Mono.empty());
+  public NamedCache<String, Integer> mockCatalogueCache() {
+    NamedCache<String, Integer> mock = mock(NamedCache.class);
+    when(mock.get(anyString())).thenReturn(Mono.just(1));
+    when(mock.increment(anyString(), any())).thenReturn(Mono.empty());
     when(mock.delete(anyString())).thenReturn(Mono.empty());
     return mock;
   }
 
   @Bean
   public NamedCountService namedCountService(
-    @Qualifier("NamedCache.Values") NamedCache<String, Long> values,
-    @Qualifier("NamedCache.Catalogue") NamedCache<String, Long> catalogue) {
-    return new NamedCountService.Standard(values, catalogue);
+    @Qualifier("NamedCache.Values") NamedCache<String, Integer> values,
+    @Qualifier("NamedCache.Catalogue") NamedCache<String, Integer> catalogue,
+    NamedCountNotification notification) {
+    return new NamedCountService.Standard(values, catalogue, notification);
+  }
+
+  @Bean
+  public NamedCatalogueService namedCatalogueService(
+    @Qualifier("NamedCache.Catalogue") NamedCache<String, Integer> catalogue,
+    CatalogueRepository catalogueRepository) {
+    return new NamedCatalogueService.Standard(catalogue, catalogueRepository);
   }
 }

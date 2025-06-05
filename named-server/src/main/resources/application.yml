@@ -16,7 +16,7 @@ spring:
       host: ${REDIS_HOSTNAME:redis}
 logging:
   level:
-    root: DEBUG
+    root: INFO
   charset:
     console: UTF-8
 

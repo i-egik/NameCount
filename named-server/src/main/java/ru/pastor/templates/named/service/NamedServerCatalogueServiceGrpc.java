@@ -1,15 +1,113 @@
 package ru.pastor.templates.named.service;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import ru.pastor.templates.named.server.grpc.ReactorCountServiceGrpc;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import ru.pastor.templates.named.server.grpc.CatalogueFilter;
+import ru.pastor.templates.named.server.grpc.CatalogueInformation;
+import ru.pastor.templates.named.server.grpc.CataloguePutRequest;
+import ru.pastor.templates.named.server.grpc.CatalogueReplyValue;
+import ru.pastor.templates.named.server.grpc.Error;
+import ru.pastor.templates.named.server.grpc.ReactorCatalogueServiceGrpc;
+import ru.pastor.templates.named.server.grpc.Status;
 
 /**
  * gRPC сервис для работы с каталогом счетчиков.
  * Предоставляет API для доступа к каталогу счетчиков через gRPC протокол.
- * В текущей версии класс является заглушкой и не содержит реализации методов.
- * Расширяет базовый класс ReactorCountServiceGrpc.CountServiceImplBase для реактивной обработки gRPC запросов.
+ * Расширяет базовый класс ReactorCatalogueServiceGrpc.CatalogueServiceImplBase для реактивной обработки gRPC запросов.
+ * Делегирует бизнес-логику сервису NamedCatalogueService.
  */
-@Service("NamedServerService.Count.Grpc")
-public class NamedServerCatalogueServiceGrpc extends ReactorCountServiceGrpc.CountServiceImplBase {
+@Slf4j
+@RequiredArgsConstructor
+@Service("NamedServerService.Catalogue.Grpc")
+public class NamedServerCatalogueServiceGrpc extends ReactorCatalogueServiceGrpc.CatalogueServiceImplBase {
 
+  /**
+   * Сервис для работы с каталогом счетчиков.
+   * Используется для выполнения операций с каталогом.
+   */
+  private final NamedCatalogueService namedCatalogueService;
+
+  /**
+   * Получает список счетчиков по параметрам фильтрации.
+   *
+   * @param request запрос с параметрами фильтрации
+   * @return поток ответов, содержащих информацию о счетчиках и статусы операций
+   */
+  @Override
+  public Flux<CatalogueReplyValue> list(CatalogueFilter request) {
+    if (request.hasName()) {
+      return namedCatalogueService.get(request.getName())
+        .map(model -> CatalogueReplyValue.newBuilder()
+          .setValue(CatalogueInformation.newBuilder()
+            .setId(model.information().id())
+            .setName(model.information().name())
+            .build())
+          .setStatus(Status.SUCCESS)
+          .build())
+        .flux()
+        .switchIfEmpty(Flux.just(CatalogueReplyValue.newBuilder()
+          .setStatus(Status.NOT_FOUND)
+          .build()))
+        .onErrorResume(throwable -> Flux.just(CatalogueReplyValue.newBuilder()
+          .setStatus(Status.FAILURE)
+          .setError(Error.newBuilder().setMessage(throwable.getMessage()).build())
+          .build()));
+    } else {
+      return namedCatalogueService.list()
+        .map(model -> CatalogueReplyValue.newBuilder()
+          .setValue(CatalogueInformation.newBuilder()
+            .setId(model.information().id())
+            .setName(model.information().name())
+            .build())
+          .setStatus(Status.SUCCESS)
+          .build())
+        .switchIfEmpty(Flux.just(CatalogueReplyValue.newBuilder()
+          .setStatus(Status.NOT_FOUND)
+          .build()))
+        .onErrorResume(throwable -> Flux.just(CatalogueReplyValue.newBuilder()
+          .setStatus(Status.FAILURE)
+          .setError(Error.newBuilder().setMessage(throwable.getMessage()).build())
+          .build()));
+    }
+  }
+
+  /**
+   * Создает или обновляет счетчик в каталоге.
+   *
+   * @param request запрос с параметрами создания/обновления счетчика
+   * @return ответ, содержащий информацию о созданном/обновленном счетчике и статус операции
+   */
+  @Override
+  public Mono<CatalogueReplyValue> put(CataloguePutRequest request) {
+    if (request.hasName()) {
+      return namedCatalogueService.createOrUpdate(request.getName(), request.getDescription())
+        .map(model -> CatalogueReplyValue.newBuilder()
+          .setValue(CatalogueInformation.newBuilder()
+            .setId(model.information().id())
+            .setName(model.information().name())
+            .build())
+          .setStatus(Status.SUCCESS)
+          .build())
+        .switchIfEmpty(Mono.just(CatalogueReplyValue.newBuilder()
+          .setStatus(Status.NOT_FOUND)
+          .build()))
+        .onErrorResume(throwable -> Mono.just(CatalogueReplyValue.newBuilder()
+          .setStatus(Status.FAILURE)
+          .setError(Error.newBuilder().setMessage(throwable.getMessage()).build())
+          .build()));
+    } else if (request.hasId()) {
+      return Mono.just(CatalogueReplyValue.newBuilder()
+        .setStatus(Status.FAILURE)
+        .setError(Error.newBuilder().setMessage("Id is not provided").build())
+        .build());
+    } else {
+      return Mono.just(CatalogueReplyValue.newBuilder()
+        .setStatus(Status.FAILURE)
+        .setError(Error.newBuilder().setMessage("Neither name nor id provided").build())
+        .build());
+    }
+  }
 }

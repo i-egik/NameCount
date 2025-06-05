@@ -18,16 +18,16 @@ import ru.pastor.templates.named.configuration.RedisConfiguration;
  * и импортом пользовательских конфигураций.
  */
 @SpringBootApplication(exclude = {
-  DataSourceAutoConfiguration.class,  // Отключаем автоконфигурацию JDBC, так как используем R2DBC
-  RedisReactiveAutoConfiguration.class,  // Отключаем стандартную автоконфигурацию Redis, используем свою
-  RedisAutoConfiguration.class,  // Отключаем стандартную автоконфигурацию Redis, используем свою
-  ValidationAutoConfiguration.class,  // Отключаем стандартную валидацию, используем свою
-  R2dbcAutoConfiguration.class  // Отключаем стандартную автоконфигурацию R2DBC, используем свою
+  DataSourceAutoConfiguration.class,
+  RedisReactiveAutoConfiguration.class,
+  RedisAutoConfiguration.class,
+  ValidationAutoConfiguration.class,
+  R2dbcAutoConfiguration.class
 })
 @Import({
-  ApplicationConfiguration.class,  // Импортируем основную конфигурацию приложения
-  RedisConfiguration.class,  // Импортируем конфигурацию Redis
-  CacheConfiguration.class  // Импортируем конфигурацию кэша
+  ApplicationConfiguration.class,
+  RedisConfiguration.class,
+  CacheConfiguration.class
 })
 public class Main {
   /**

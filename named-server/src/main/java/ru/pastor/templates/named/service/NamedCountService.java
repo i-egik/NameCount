@@ -49,12 +49,13 @@ public interface NamedCountService {
     /**
      * Кэш для хранения значений счетчиков.
      */
-    private final NamedCache<String, Long> values;
+    private final NamedCache<String, Integer> values;
 
     /**
      * Кэш для хранения каталога счетчиков.
      */
-    private final NamedCache<String, Long> catalogue;
+    private final NamedCache<String, Integer> catalogue;
+    private final NamedCountNotification notification;
 
     /**
      * Формирует ключ для доступа к значению счетчика.
@@ -73,7 +74,9 @@ public interface NamedCountService {
      */
     @Override
     public Mono<Long> get(String name, long userId) {
-      return key(name, userId).flatMap(values::get);
+      return key(name, userId)
+        .flatMap(values::get)
+        .map(Long::valueOf);
     }
 
     /**
@@ -92,9 +95,11 @@ public interface NamedCountService {
      */
     @Override
     public Mono<Long> increment(String name, long userId, long delta) {
-      return key(name, userId).flatMap(k -> values.get(k)
-        .defaultIfEmpty(0L)
-        .flatMap(value -> values.update(k, value + delta).thenReturn(value + delta)));
+      return key(name, userId)
+        .flatMap(k -> values.increment(k, (int) delta))
+        .flatMap(newValue -> catalogue.get(name)
+          .flatMap(ci -> notification.update(userId, ci, newValue)
+            .thenReturn(newValue.longValue())));
     }
   }
 }

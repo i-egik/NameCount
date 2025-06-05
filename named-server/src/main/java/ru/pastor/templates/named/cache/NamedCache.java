@@ -42,7 +42,9 @@ public interface NamedCache<K, V> {
    * @param value новое значение
    * @return пустой Mono, сигнализирующий о завершении операции
    */
-  Mono<Void> update(K key, V value);
+  Mono<V> increment(K key, V value);
+
+  Mono<V> update(K key, V value);
 
   /**
    * Интерфейс для загрузки всех значений кэша.
@@ -84,8 +86,13 @@ public interface NamedCache<K, V> {
      * В реализации только для чтения метод всегда возвращает пустой Mono.
      */
     @Override
-    public final Mono<Void> update(K key, V value) {
-      return Mono.empty();
+    public final Mono<V> increment(K key, V value) {
+      return Mono.just(value);
+    }
+
+    @Override
+    public final Mono<V> update(K key, V value) {
+      return Mono.just(value);
     }
   }
 
@@ -173,9 +180,15 @@ public interface NamedCache<K, V> {
      * Обновляет значение в делегате, а затем в локальном кэше.
      */
     @Override
-    public Mono<Void> update(K key, V value) {
+    public Mono<V> increment(K key, V value) {
+      return delegate.increment(key, value)
+        .flatMap(v -> Mono.fromRunnable(() -> cache.put(key, v)).thenReturn(v));
+    }
+
+    @Override
+    public Mono<V> update(K key, V value) {
       return delegate.update(key, value)
-        .then(Mono.fromRunnable(() -> cache.put(key, value)));
+        .flatMap(v -> Mono.fromRunnable(() -> cache.put(key, v)).thenReturn(v));
     }
   }
 }

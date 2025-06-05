@@ -54,12 +54,16 @@ public final class Redis implements NamedCache<String, Integer> {
    * В случае ошибки логирует сообщение и возвращает пустой Mono.
    */
   @Override
-  public Mono<Void> update(String key, Integer value) {
+  public Mono<Integer> increment(String key, Integer value) {
+    return operations.opsForValue().increment(key, value)
+      .map(Long::intValue)
+      .doOnError(e -> log.error("Error updating key {} with value {}: {}", key, value, e.getMessage()));
+  }
+
+  @Override
+  public Mono<Integer> update(String key, Integer value) {
     return operations.opsForValue().set(key, value)
-      .onErrorResume(e -> {
-        log.error("Error updating key {} with value {}: {}", key, value, e.getMessage());
-        return Mono.just(false);
-      })
-      .then();
+      .flatMap(v -> Mono.just(value))
+      .doOnError(e -> log.error("Error updating key {} with value {}: {}", key, value, e.getMessage()));
   }
 }

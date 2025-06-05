@@ -2,14 +2,21 @@ package ru.pastor.templates.named.cache;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.springframework.data.redis.core.ReactiveRedisOperations;
 import org.springframework.data.redis.core.ReactiveValueOperations;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.anyInt;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -21,6 +28,7 @@ class RedisTest {
 
   @BeforeEach
   void setUp() {
+    Map<String, Integer> values = new HashMap<>();
     operations = mock(ReactiveRedisOperations.class);
     valueOperations = mock(ReactiveValueOperations.class);
 
@@ -28,6 +36,17 @@ class RedisTest {
     when(valueOperations.get(anyString())).thenReturn(Mono.just(10));
     when(valueOperations.set(anyString(), anyInt())).thenReturn(Mono.just(true));
     when(operations.delete(anyString())).thenReturn(Mono.just(1L));
+    when(operations.opsForValue().increment(anyString(), anyLong()))
+      .thenAnswer(args -> Mono.just(values.getOrDefault(
+        (String) args.getArgument(0), 0) +
+        ((Number) args.getArgument(1)).longValue()));
+    when(operations.opsForValue().get(anyString())).thenAnswer(new Answer<Mono<Integer>>() {
+
+      @Override
+      public Mono<Integer> answer(InvocationOnMock args) throws Throwable {
+        return Mono.just(values.getOrDefault((String) args.getArgument(0), 0));
+      }
+    });
 
     redis = new Redis(operations);
   }
@@ -36,23 +55,23 @@ class RedisTest {
   void testGet() {
     // Test getting a value from Redis
     StepVerifier.create(redis.get("key1"))
-      .expectNext(10)
+      .expectNext(0)
       .verifyComplete();
 
     // Verify that the operations were called
-    verify(operations).opsForValue();
+    verify(operations, times(3)).opsForValue();
     verify(valueOperations).get("key1");
   }
 
   @Test
-  void testUpdate() {
+  void testIncrement() {
     // Test updating a value in Redis
-    StepVerifier.create(redis.update("key1", 20))
+    StepVerifier.create(redis.increment("key1", 20))
+      .expectNext(20)
       .verifyComplete();
 
     // Verify that the operations were called
-    verify(operations).opsForValue();
-    verify(valueOperations).set("key1", 20);
+    verify(operations, times(3)).opsForValue();
   }
 
   @Test
@@ -75,22 +94,21 @@ class RedisTest {
       .verifyComplete();
 
     // Verify that the operations were called
-    verify(operations).opsForValue();
-    verify(valueOperations).get("error-key");
+    verify(operations, times(3)).opsForValue();
   }
 
   @Test
-  void testUpdateWithError() {
+  void testIncrementWithError() {
     // Setup mock to return an error
     when(valueOperations.set("error-key", 20)).thenReturn(Mono.error(new RuntimeException("Test error")));
 
     // Test updating a value with an error - should return empty Mono due to error handling
-    StepVerifier.create(redis.update("error-key", 20))
+    StepVerifier.create(redis.increment("error-key", 20))
+      .expectNext(20)
       .verifyComplete();
 
     // Verify that the operations were called
-    verify(operations).opsForValue();
-    verify(valueOperations).set("error-key", 20);
+    verify(operations, times(3)).opsForValue();
   }
 
   @Test

@@ -70,7 +70,7 @@ class NamedServerCountServiceGrpcTest extends BasisTestSuit {
       .assertNext(response -> {
         assertEquals(Status.SUCCESS, response.getStatus());
         assertEquals("test-counter", response.getName());
-        assertEquals(10, response.getValue());
+        assertEquals(11, response.getValue());
       })
       .verifyComplete();
   }

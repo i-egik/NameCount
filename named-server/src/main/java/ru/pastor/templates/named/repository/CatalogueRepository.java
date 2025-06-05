@@ -35,6 +35,8 @@ public interface CatalogueRepository {
    */
   Mono<CatalogueEntity> get(String name);
 
+  Mono<CatalogueEntity> create(String name, String description);
+
   /**
    * Запись для фильтрации элементов каталога.
    * В текущей реализации не содержит параметров фильтрации.
@@ -102,6 +104,21 @@ public interface CatalogueRepository {
         .bind("name", name)
         .map(Postgres::map)
         .first()
+        .as(tx::transactional);
+    }
+
+    @Override
+    public Mono<CatalogueEntity> create(String name, String description) {
+      return client.sql("INSERT INTO counter_catalogue(name, description) VALUES(:name, :description)")
+        .bind("name", name)
+        .bind("description", description)
+        .filter(stmt -> stmt.returnGeneratedValues("id"))
+        .map(row -> CatalogueEntity.builder()
+          .id(row.get("id", Integer.class))
+          .name(name)
+          .description(description)
+          .build())
+        .one()
         .as(tx::transactional);
     }
   }

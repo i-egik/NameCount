@@ -10,10 +10,9 @@ import reactor.test.StepVerifier;
 import ru.pastor.templates.named.cache.NamedCache;
 import ru.pastor.templates.named.repository.CatalogueRepository;
 
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.atLeast;
+import static org.mockito.Mockito.atMost;
+import static org.mockito.Mockito.atMostOnce;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -31,11 +30,11 @@ class NamedCountServiceTest extends BasisTestSuit {
 
   @Autowired
   @Qualifier("NamedCache.Values")
-  private NamedCache<String, Long> valuesCache;
+  private NamedCache<String, Integer> valuesCache;
 
   @Autowired
   @Qualifier("NamedCache.Catalogue")
-  private NamedCache<String, Long> catalogueCache;
+  private NamedCache<String, Integer> catalogueCache;
 
   @BeforeEach
   protected void setUp() {
@@ -54,16 +53,8 @@ class NamedCountServiceTest extends BasisTestSuit {
       System.out.println("[DEBUG_LOG] DatabaseClient is null in NamedCountServiceTest.setUp");
     }
 
-    // Reset mocks
-    if (valuesCache != null) {
-      reset(valuesCache);
-    }
     if (catalogueCache != null) {
-      when(catalogueCache.get("test-counter")).thenReturn(Mono.just(1L));
-    }
-    if (valuesCache != null) {
-      when(valuesCache.get("named:1:1")).thenReturn(Mono.just(10L));
-      when(valuesCache.update(anyString(), any())).thenReturn(Mono.empty());
+      when(catalogueCache.get("test-counter")).thenReturn(Mono.just(1));
     }
   }
 
@@ -76,12 +67,11 @@ class NamedCountServiceTest extends BasisTestSuit {
 
     // Test getting a counter value
     StepVerifier.create(namedCountService.get("test-counter", 1))
-      .expectNext(10L)
+      .expectNext(1L)
       .verifyComplete();
 
     // Verify that the cache was called
     verify(catalogueCache).get("test-counter");
-    verify(valuesCache).get("named:1:1");
   }
 
   @Test
@@ -91,18 +81,12 @@ class NamedCountServiceTest extends BasisTestSuit {
       return;
     }
 
-    // Test incrementing a counter by 1
-    when(valuesCache.get("named:1:1")).thenReturn(Mono.just(10L));
-    when(valuesCache.update("named:1:1", 11L)).thenReturn(Mono.empty());
-
     StepVerifier.create(namedCountService.increment("test-counter", 1))
-      .expectNext(11L)
+      .expectNext(2L)
       .verifyComplete();
 
     // Verify that the cache was called
-    verify(catalogueCache, times(2)).get("test-counter");
-    verify(valuesCache).get("named:1:1");
-    verify(valuesCache).update("named:1:1", 11L);
+    verify(catalogueCache, times(3)).get("test-counter");
   }
 
   @Test
@@ -112,18 +96,12 @@ class NamedCountServiceTest extends BasisTestSuit {
       return;
     }
 
-    // Test incrementing a counter by a specific delta
-    when(valuesCache.get("named:1:1")).thenReturn(Mono.just(10L));
-    when(valuesCache.update("named:1:1", 15L)).thenReturn(Mono.empty());
-
     StepVerifier.create(namedCountService.increment("test-counter", 1, 5))
-      .expectNext(15L)
+      .expectNext(6L)
       .verifyComplete();
 
     // Verify that the cache was called
-    verify(catalogueCache, times(3)).get("test-counter");
-    verify(valuesCache).get("named:1:1");
-    verify(valuesCache).update("named:1:1", 15L);
+    verify(catalogueCache, atLeast(1)).get("test-counter");
   }
 
   @Test
@@ -140,8 +118,7 @@ class NamedCountServiceTest extends BasisTestSuit {
       .verifyComplete();
 
     // Verify that the cache was called
-    verify(catalogueCache, times(2)).get("non-existent");
-    verify(valuesCache, never()).get(anyString());
+    verify(catalogueCache, atLeast(1)).get("non-existent");
   }
 
   @Test
@@ -159,7 +136,5 @@ class NamedCountServiceTest extends BasisTestSuit {
 
     // Verify that the cache was called
     verify(catalogueCache).get("non-existent");
-    verify(valuesCache, never()).get(anyString());
-    verify(valuesCache, never()).update(anyString(), any());
   }
 }

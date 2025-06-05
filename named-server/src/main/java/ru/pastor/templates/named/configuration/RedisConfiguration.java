@@ -14,6 +14,7 @@ import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactor
 import org.springframework.data.redis.core.ReactiveRedisOperations;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.data.redis.core.ReactiveStringRedisTemplate;
+import org.springframework.data.redis.listener.ReactiveRedisMessageListenerContainer;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.SerializationException;
@@ -42,23 +43,28 @@ public class RedisConfiguration {
   }
 
   @Bean
+  public ReactiveRedisMessageListenerContainer listenerContainer(ReactiveRedisConnectionFactory factory) {
+    return new ReactiveRedisMessageListenerContainer(factory);
+  }
+
+  @Bean
   public ReactiveRedisOperations<String, String> textRedisOperations(ReactiveRedisConnectionFactory factory) {
     return new ReactiveStringRedisTemplate(factory);
   }
 
   @Bean
-  public ReactiveRedisOperations<String, Long> longRedisOperations(ReactiveRedisConnectionFactory factory) {
-    return new ReactiveRedisTemplate<>(factory, RedisSerializationContext.<String, Long>newSerializationContext()
+  public ReactiveRedisTemplate<String, Integer> longRedisOperations(ReactiveRedisConnectionFactory factory) {
+    return new ReactiveRedisTemplate<>(factory, RedisSerializationContext.<String, Integer>newSerializationContext()
       .key(RedisSerializer.string())
-      .value(RedisSerializationContext.SerializationPair.fromSerializer(LongSerializer.INSTANCE))
+      .value(RedisSerializationContext.SerializationPair.fromSerializer(IntegerSerializer.INSTANCE))
       .build());
   }
 
-  private static final class LongSerializer implements RedisSerializer<Long> {
-    private static final LongSerializer INSTANCE = new LongSerializer();
+  private static final class IntegerSerializer implements RedisSerializer<Integer> {
+    private static final IntegerSerializer INSTANCE = new IntegerSerializer();
 
     @Override
-    public byte[] serialize(Long value) throws SerializationException {
+    public byte[] serialize(Integer value) throws SerializationException {
       if (value == null) {
         return null;
       }
@@ -66,8 +72,8 @@ public class RedisConfiguration {
     }
 
     @Override
-    public Long deserialize(byte[] bytes) throws SerializationException {
-      return new BigInteger(bytes).longValue();
+    public Integer deserialize(byte[] bytes) throws SerializationException {
+      return new BigInteger(bytes).intValue();
     }
   }
 }

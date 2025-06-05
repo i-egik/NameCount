@@ -5,8 +5,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.r2dbc.core.DatabaseClient;
 import reactor.core.publisher.Mono;
-import ru.pastor.templates.named.server.grpc.CountFilter;
-import ru.pastor.templates.named.server.grpc.CountPutRequest;
+import reactor.test.StepVerifier;
+import ru.pastor.templates.named.server.grpc.CatalogueFilter;
+import ru.pastor.templates.named.server.grpc.CataloguePutRequest;
 
 class NamedServerCatalogueServiceGrpcTest extends BasisTestSuit {
 
@@ -15,12 +16,13 @@ class NamedServerCatalogueServiceGrpcTest extends BasisTestSuit {
   @Autowired
   private DatabaseClient databaseClient;
 
+  @Autowired
+  private NamedCatalogueService namedCatalogueService;
+
   @BeforeEach
   protected void setUp() {
     super.setUp();
-
-    // Create the gRPC service instance
-    grpcService = new NamedServerCatalogueServiceGrpc();
+    grpcService = new NamedServerCatalogueServiceGrpc(namedCatalogueService);
 
     if (databaseClient != null) {
       try {
@@ -39,52 +41,22 @@ class NamedServerCatalogueServiceGrpcTest extends BasisTestSuit {
 
   @Test
   void testList() {
-    if (grpcService == null) {
-      System.out.println("[DEBUG_LOG] Skipping testList because required beans are null");
-      return;
-    }
-
-    // Since list() is not implemented in the service (it calls super.list()),
-    // we'll just verify that it throws an UNIMPLEMENTED error
-    CountFilter request = CountFilter.newBuilder()
+    CatalogueFilter request = CatalogueFilter.newBuilder()
       .setName("test-catalogue")
-      .setUserId(1)
       .build();
-
-    try {
-      // This will throw an exception, which is expected
-      grpcService.list(request).subscribe();
-      // If we get here, the test should fail
-      assert false : "Expected an exception but none was thrown";
-    } catch (Exception e) {
-      // Expected exception, test passes
-      assert e instanceof io.grpc.StatusRuntimeException : "Expected StatusRuntimeException but got " + e.getClass().getName();
-    }
+    StepVerifier.create(grpcService.list(request))
+      .expectNextCount(1)
+      .verifyComplete();
   }
 
   @Test
   void testPut() {
-    if (grpcService == null) {
-      System.out.println("[DEBUG_LOG] Skipping testPut because required beans are null");
-      return;
-    }
-
-    // Since put() is not implemented in the service (it calls super.put()),
-    // we'll just verify that it throws an UNIMPLEMENTED error
-    CountPutRequest request = CountPutRequest.newBuilder()
-      .setName("test-catalogue")
-      .setUserId(1)
-      .setDelta(5)
+    CataloguePutRequest request = CataloguePutRequest.newBuilder()
+      .setName("test-catalogue2")
       .build();
 
-    try {
-      // This will throw an exception, which is expected
-      grpcService.put(request).subscribe();
-      // If we get here, the test should fail
-      assert false : "Expected an exception but none was thrown";
-    } catch (Exception e) {
-      // Expected exception, test passes
-      assert e instanceof io.grpc.StatusRuntimeException : "Expected StatusRuntimeException but got " + e.getClass().getName();
-    }
+    StepVerifier.create(grpcService.put(request))
+      .expectNextCount(1)
+      .verifyComplete();
   }
 }
