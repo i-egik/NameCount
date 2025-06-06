@@ -16,18 +16,57 @@ service -> service: Регистрация GRPC
 
 grpc -> service: <b>GRPC</b> ""/named.CountService/Increment""
 activate service
-service -> redis: Инкремент счетчика
+service -> redis: Инкремент счетчика по ключу ""{user_id}:{counter_id}""
 alt Функциональность streams
   service -> redis: сообщение в очередь
 end
-
 service --> grpc: новое значение счетчика
 deactivate service
+
+loop Обработка изменений в Redis
+  service -> service: выбор обработчика
+  activate service
+  note left
+    - выбор обработчика в соответствии с настройками сервиса
+      ""PUBSUB"" - использование ""PubSub"" механизма ""Redis""
+      ""STREAM"" - использование ""Stream"" механизма ""Redis""
+  end note
+  alt PubSub
+    service <-- redis: изменение конкретного ключа
+  else Stream
+    service <-- redis: получение сообщения об изменении
+    service -> service: разбор сообщения
+    note right
+      - несколько видов парсеров
+      - ""NUMBER"" - значения параметров представлены в виде чисел,
+        не человекочитаемо если смотреть через ""redis""
+      - ""STRING"" - значения параметров представлены в виде строк,
+        человекочитаемо если смотреть через ""redis""
+      - ""SCALAR"" - имеет одно строковое значение вида
+        ""{user_id}:{counter_id}:{value}"",
+        человекочитаемо если смотреть через ""redis""
+    end note
+  end
+  service -> pg: Сохранение нового значения счетчика
+  service -> service: определение поведения
+  note left
+    - получаем конфигурацию
+    - определяем необходимое действие
+    - если оповещение, то через какой сервис
+      ""kafka"", ""redis""
+  end note
+  alt #LightYellow необходимо оповещение
+    service -> notify: оповещение
+  else #LightGreen необходимо действие
+    service -> service: действие согласно настройкам
+  end
+  deactivate service
+end
 
 ==  Получение значения  ""GRPC"" ==
 grpc -> service: <b>GRPC</b> ""/named.CountService/Get""
 activate service
-service -> redis: запрос значения по ключу ""{user_id}:{counter_id}:{value}""
+service -> redis: запрос значения по ключу ""{user_id}:{counter_id}""
 alt #LightPink нет значения
   service <--x redis
   service -> pg: запрос счетчика из СУБД
@@ -44,27 +83,5 @@ else #LightGreen есть значение
   service --> grpc: значение счетчика
 end
 deactivate service
-
-==  Обработка изменений значения счетчиков ==
-loop Обработка изменений в Redis
-  alt PubSub
-    service <-- redis: изменение конкретного ключа
-  else Stream
-    service <-- redis: получение сообщения об изменении
-  end
-  service -> pg: Сохранение нового значения счетчика
-  service -> service: определение поведения
-  note left
-    - получаем конфигурацию
-    - определяем необходимое действие
-    - если оповещение, то через какой сервис
-      ""kafka"", ""redis""
-  end note
-  alt #LightYellow необходимо оповещение
-    service -> notify: оповещение
-  else #LightGreen необходимо действие
-    service -> service: действие согласно настройкам
-  end
-end
 
 @enduml
