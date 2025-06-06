@@ -5,6 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.ReactiveRedisOperations;
 import reactor.core.publisher.Mono;
 
+import java.time.Duration;
+
 /**
  * Реализация интерфейса NamedCache для работы с Redis.
  * Предоставляет реактивный доступ к операциям с кэшем Redis для хранения пар ключ-значение.
@@ -18,6 +20,11 @@ public final class Redis implements NamedCache<String, Integer> {
    * Используется для выполнения базовых операций get, set и delete.
    */
   private final ReactiveRedisOperations<String, Number> operations;
+  private final long ttlSeconds;
+
+  private static void onError(String key, Integer value, Throwable e) {
+    log.error("Error updating key {} with value {}: {}", key, value, e.getMessage());
+  }
 
   /**
    * {@inheritDoc}
@@ -26,7 +33,7 @@ public final class Redis implements NamedCache<String, Integer> {
    */
   @Override
   public Mono<Integer> get(String key) {
-    return operations.opsForValue().get(key)
+    return operations.opsForValue().getAndExpire(key, Duration.ofSeconds(ttlSeconds))
       .map(Number::intValue)
       .onErrorResume(e -> {
         log.error("Error getting value for key {}: {}", key, e.getMessage());
@@ -58,13 +65,13 @@ public final class Redis implements NamedCache<String, Integer> {
   public Mono<Integer> increment(String key, Integer value) {
     return operations.opsForValue().increment(key, value.longValue())
       .map(Long::intValue)
-      .doOnError(e -> log.error("Error updating key {} with value {}: {}", key, value, e.getMessage()));
+      .doOnError(e -> onError(key, value, e));
   }
 
   @Override
   public Mono<Integer> update(String key, Integer value) {
-    return operations.opsForValue().set(key, value)
+    return operations.opsForValue().set(key, value, Duration.ofSeconds(ttlSeconds))
       .flatMap(v -> Mono.just(value))
-      .doOnError(e -> log.error("Error updating key {} with value {}: {}", key, value, e.getMessage()));
+      .doOnError(e -> onError(key, value, e));
   }
 }

@@ -128,16 +128,15 @@ public interface CounterRepository {
      * Создает новую запись счетчика в базе данных и возвращает созданный объект.
      */
     @Override
-    public Mono<CounterEntity> create(long counterId, long userId, long initialValue) {
-      LocalDateTime now = LocalDateTime.now();
+    public Mono<CounterEntity> create(long userId, long counterId, long initialValue) {
       return client
-        .sql("INSERT INTO named.counter_values (counter_id, user_id, \"value\", created, updated) " +
-          "VALUES (:counterId, :userId, :value, :created, :updated) ")
+        .sql("INSERT INTO named.counter_values AS cv (counter_id, user_id, \"value\") " +
+          "VALUES (:counterId, :userId, :value) ON CONFLICT (counter_id, user_id) DO UPDATE " +
+          "SET \"value\" = EXCLUDED.value, updated = CURRENT_TIMESTAMP " +
+          "WHERE cv.counter_id = :counterId AND cv.user_id = :userId")
         .bind("counterId", counterId)
         .bind("userId", userId)
         .bind("value", initialValue)
-        .bind("created", now)
-        .bind("updated", now)
         .filter(stmt -> stmt.returnGeneratedValues("id"))
         .map(row -> row.get("id", Integer.class))
         .one()

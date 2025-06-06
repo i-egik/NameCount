@@ -25,6 +25,7 @@ import java.time.Duration;
 @Slf4j
 @Configuration
 public class RedisConfiguration {
+  public static final NumberSerializer INSTANCE = new NumberSerializer();
   private static final long COMMAND_TIMEOUT = 2000;
 
   @Bean
@@ -56,14 +57,13 @@ public class RedisConfiguration {
   public ReactiveRedisTemplate<String, Number> longRedisOperations(ReactiveRedisConnectionFactory factory) {
     return new ReactiveRedisTemplate<>(factory, RedisSerializationContext.<String, Number>newSerializationContext()
       .key(RedisSerializer.string())
-      .value(RedisSerializationContext.SerializationPair.fromSerializer(NumberSerializer.INSTANCE))
+      .value(RedisSerializationContext.SerializationPair.fromSerializer(INSTANCE))
       .hashKey(RedisSerializer.string())
-      .hashValue(RedisSerializationContext.SerializationPair.fromSerializer(NumberSerializer.INSTANCE))
+      .hashValue(RedisSerializationContext.SerializationPair.fromSerializer(INSTANCE))
       .build());
   }
 
   private static final class NumberSerializer implements RedisSerializer<Number> {
-    private static final NumberSerializer INSTANCE = new NumberSerializer();
 
     @Override
     public byte[] serialize(Number value) throws SerializationException {

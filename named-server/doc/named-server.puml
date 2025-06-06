@@ -1,0 +1,70 @@
+@startuml
+title Сервис управления именованными счетчиками
+participant grpc as "Интерфейс"
+box named-server
+    participant service as "Сервис"
+    database redis as "Redis"
+    database pg as "СУБД"
+end box
+participant notify as "Оповещение" #LightYellow
+
+== Загрузка сервиса ==
+
+service -> service: Регистрация GRPC
+
+==  Инкремент счетчика  ""GRPC"" ==
+
+grpc -> service: <b>GRPC</b> ""/named.CountService/Increment""
+activate service
+service -> redis: Инкремент счетчика
+alt Функциональность streams
+  service -> redis: сообщение в очередь
+end
+
+service --> grpc: новое значение счетчика
+deactivate service
+
+==  Получение значения  ""GRPC"" ==
+grpc -> service: <b>GRPC</b> ""/named.CountService/Get""
+activate service
+service -> redis: запрос значения по ключу ""{user_id}:{counter_id}:{value}""
+alt #LightPink нет значения
+  service <--x redis
+  service -> pg: запрос счетчика из СУБД
+  alt #LightPink нет значения
+    service <--x pg
+    service --> grpc: ошибка, ключ не найден
+  else #LightGreen есть
+    service <-- pg: значение
+    service -> redis: установка значения и TTL
+    service --> grpc: значение счетчика
+  end
+else #LightGreen есть значение
+  service <-- redis: значение счетчика
+  service --> grpc: значение счетчика
+end
+deactivate service
+
+==  Обработка изменений значения счетчиков ==
+loop Обработка изменений в Redis
+  alt PubSub
+    service <-- redis: изменение конкретного ключа
+  else Stream
+    service <-- redis: получение сообщения об изменении
+  end
+  service -> pg: Сохранение нового значения счетчика
+  service -> service: определение поведения
+  note left
+    - получаем конфигурацию
+    - определяем необходимое действие
+    - если оповещение, то через какой сервис
+      ""kafka"", ""redis""
+  end note
+  alt #LightYellow необходимо оповещение
+    service -> notify: оповещение
+  else #LightGreen необходимо действие
+    service -> service: действие согласно настройкам
+  end
+end
+
+@enduml

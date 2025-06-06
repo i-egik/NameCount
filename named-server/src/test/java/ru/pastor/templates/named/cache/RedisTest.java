@@ -12,6 +12,7 @@ import reactor.test.StepVerifier;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.anyInt;
@@ -40,15 +41,11 @@ class RedisTest {
       .thenAnswer(args -> Mono.just(values.getOrDefault(
         (String) args.getArgument(0), 0) +
         ((Number) args.getArgument(1)).longValue()));
-    when(operations.opsForValue().get(anyString())).thenAnswer(new Answer<Mono<Integer>>() {
+    when(operations.opsForValue().getAndExpire(anyString(), any()))
+      .thenAnswer((Answer<Mono<Integer>>) args ->
+        Mono.just(values.getOrDefault((String) args.getArgument(0), 0)));
 
-      @Override
-      public Mono<Integer> answer(InvocationOnMock args) throws Throwable {
-        return Mono.just(values.getOrDefault((String) args.getArgument(0), 0));
-      }
-    });
-
-    redis = new Redis(operations);
+    redis = new Redis(operations, 10);
   }
 
   @Test
