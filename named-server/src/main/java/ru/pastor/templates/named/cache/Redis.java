@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.ReactiveRedisOperations;
 import reactor.core.publisher.Mono;
 
-import java.time.Duration;
+//import java.time.Duration;
 
 /**
  * Реализация интерфейса NamedCache для работы с Redis.
@@ -20,7 +20,7 @@ public final class Redis implements NamedCache<String, Integer> {
    * Используется для выполнения базовых операций get, set и delete.
    */
   private final ReactiveRedisOperations<String, Number> operations;
-  private final long ttlSeconds;
+  //private final long ttlSeconds;
 
   private static void onError(String key, Integer value, Throwable e) {
     log.error("Error updating key {} with value {}: {}", key, value, e.getMessage());
