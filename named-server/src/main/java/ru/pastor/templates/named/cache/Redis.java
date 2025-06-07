@@ -33,7 +33,7 @@ public final class Redis implements NamedCache<String, Integer> {
    */
   @Override
   public Mono<Integer> get(String key) {
-    return operations.opsForValue().getAndExpire(key, Duration.ofSeconds(ttlSeconds))
+    return operations.opsForValue().get(key)
       .map(Number::intValue)
       .onErrorResume(e -> {
         log.error("Error getting value for key {}: {}", key, e.getMessage());
@@ -70,7 +70,7 @@ public final class Redis implements NamedCache<String, Integer> {
 
   @Override
   public Mono<Integer> update(String key, Integer value) {
-    return operations.opsForValue().set(key, value, Duration.ofSeconds(ttlSeconds))
+    return operations.opsForValue().set(key, value)
       .flatMap(v -> Mono.just(value))
       .doOnError(e -> onError(key, value, e));
   }

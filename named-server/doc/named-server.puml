@@ -75,7 +75,7 @@ alt #LightPink нет значения
     service --> grpc: ошибка, ключ не найден
   else #LightGreen есть
     service <-- pg: значение
-    service -> redis: установка значения и TTL
+    service -> redis: установка значения
     service --> grpc: значение счетчика
   end
 else #LightGreen есть значение
@@ -83,5 +83,6 @@ else #LightGreen есть значение
   service --> grpc: значение счетчика
 end
 deactivate service
+
 
 @enduml
