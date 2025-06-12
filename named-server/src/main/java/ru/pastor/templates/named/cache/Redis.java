@@ -20,7 +20,6 @@ public final class Redis implements NamedCache<String, Integer> {
    * Используется для выполнения базовых операций get, set и delete.
    */
   private final ReactiveRedisOperations<String, Number> operations;
-  //private final long ttlSeconds;
 
   private static void onError(String key, Integer value, Throwable e) {
     log.error("Error updating key {} with value {}: {}", key, value, e.getMessage());

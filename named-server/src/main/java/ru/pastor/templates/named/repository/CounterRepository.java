@@ -130,10 +130,10 @@ public interface CounterRepository {
     @Override
     public Mono<CounterEntity> create(long userId, long counterId, long initialValue) {
       return client
-        .sql("INSERT INTO named.counter_values AS cv (counter_id, user_id, \"value\") " +
+        .sql("INSERT INTO named.counter_values(counter_id, user_id, \"value\") " +
           "VALUES (:counterId, :userId, :value) ON CONFLICT (counter_id, user_id) DO UPDATE " +
           "SET \"value\" = EXCLUDED.value, updated = CURRENT_TIMESTAMP " +
-          "WHERE cv.counter_id = :counterId AND cv.user_id = :userId")
+          "WHERE EXCLUDED.counter_id = :counterId AND EXCLUDED.user_id = :userId")
         .bind("counterId", counterId)
         .bind("userId", userId)
         .bind("value", initialValue)

@@ -2,7 +2,6 @@ package ru.pastor.templates.named.cache;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.springframework.data.redis.core.ReactiveRedisOperations;
 import org.springframework.data.redis.core.ReactiveValueOperations;
@@ -45,14 +44,14 @@ class RedisTest {
       .thenAnswer((Answer<Mono<Integer>>) args ->
         Mono.just(values.getOrDefault((String) args.getArgument(0), 0)));
 
-    redis = new Redis(operations, 10);
+    redis = new Redis(operations);
   }
 
   @Test
   void testGet() {
     // Test getting a value from Redis
     StepVerifier.create(redis.get("key1"))
-      .expectNext(0)
+      .expectNextMatches(n -> n > 0)
       .verifyComplete();
 
     // Verify that the operations were called

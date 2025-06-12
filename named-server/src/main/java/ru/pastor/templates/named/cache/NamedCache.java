@@ -131,6 +131,7 @@ public interface NamedCache<K, V> {
       this.cache = CacheBuilder.newBuilder()
         .recordStats()
         .weakValues()
+        .maximumSize(100000)
         .expireAfterWrite(expires.toSeconds(), TimeUnit.SECONDS)
         .build();
       this.delegate = delegate;

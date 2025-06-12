@@ -3,7 +3,6 @@ package ru.pastor.templates.named.configuration;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.core.ReactiveRedisOperations;
@@ -20,9 +19,8 @@ import java.time.Duration;
 public class CacheConfiguration {
 
   @Bean("NamedCache.Redis")
-  public NamedCache<String, Integer> redisNamedCache(ReactiveRedisOperations<String, Number> operations,
-                                                     @Value("${app.cache.default-ttl:10s}") Duration ttl) {
-    return new Redis(operations, ttl.toSeconds());
+  public NamedCache<String, Integer> redisNamedCache(ReactiveRedisOperations<String, Number> operations) {
+    return new Redis(operations);
   }
 
   @Bean("NamedCache.Values")

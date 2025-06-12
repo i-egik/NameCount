@@ -1,0 +1,45 @@
+import os
+import unittest
+
+import named_count
+
+NAME = 'TEST'
+
+
+class Tests(unittest.TestCase):
+  @classmethod
+  def setUpClass(cls):
+    cls.nc = named_count.NamedCount()
+    cls.pg = named_count.PgNamedCount()
+    cls.pg.connect()
+
+  @classmethod
+  def tearDownClass(cls):
+    cls.pg.close()
+
+  def test_create(self):
+    (ok, count_id) = self.nc.create_count(NAME)
+    self.assertEqual(True, ok)
+    self.assertIsNotNone(count_id)
+    (ok, pg_count_id) = self.pg.create_count(NAME)
+    self.assertEqual(True, ok)
+    self.assertIsNotNone(pg_count_id)
+    self.assertEqual(count_id, pg_count_id)
+
+  def test_increment(self):
+    (ok, increment) = self.nc.increment(NAME)
+    self.assertEqual(True, ok)
+    self.assertIsNotNone(increment)
+    (ok, value) = self.nc.get(NAME)
+    self.assertEqual(True, ok)
+    self.assertIsNotNone(value)
+    (ok, increment) = self.nc.increment(NAME)
+    self.assertEqual(True, ok)
+    self.assertIsNotNone(increment)
+    self.assertEqual(value + 1, increment)
+
+
+os.chdir("/Users/pastor/github/named-count")
+
+if __name__ == '__main__':
+  unittest.main()
