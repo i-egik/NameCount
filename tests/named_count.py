@@ -128,3 +128,19 @@ class NamedCount:
     else:
       logger.error(f"Ошибка создания: {response.error.message}")
       return False, -1
+
+  def update_count(self, id: int, name: str):
+    response = self.catalogue.Update(
+      model.CatalogueUpdateRequest(
+        id=id,
+        name=name
+      )
+    )
+
+    if response.status == model.Status.SUCCESS:
+      counter_id = response.value.id
+      logger.debug(f"Обновлён счетчик ID: {counter_id}")
+      return True, counter_id
+    else:
+      logger.error(f"Ошибка обновления: {response.error.message}")
+      return False, -1

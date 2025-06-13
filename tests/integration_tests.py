@@ -6,6 +6,7 @@ import named_count
 
 NAME = 'TEST'
 TIMEOUT_SEC = 1
+TESTNAME = 'TESTUPDATE'
 
 class Tests(unittest.TestCase):
   @classmethod
@@ -26,6 +27,14 @@ class Tests(unittest.TestCase):
     self.assertEqual(True, ok)
     self.assertIsNotNone(pg_count_id)
     self.assertEqual(count_id, pg_count_id)
+
+  def test_catalogue_update(self):
+    (ok, count_id) = self.nc.create_count(NAME)
+    self.assertEqual(True, ok)
+    self.assertIsNotNone(count_id)
+    (ok, update_count_id) = self.nc.update_count(count_id, TESTNAME)
+    self.assertEqual(True, ok)
+    self.assertIsNotNone(update_count_id)
 
   def test_increment(self):
     (ok, increment) = self.nc.increment(NAME)
