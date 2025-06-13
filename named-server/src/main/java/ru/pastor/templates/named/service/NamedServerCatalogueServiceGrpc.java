@@ -14,6 +14,8 @@ import ru.pastor.templates.named.server.grpc.Error;
 import ru.pastor.templates.named.server.grpc.ReactorCatalogueServiceGrpc;
 import ru.pastor.templates.named.server.grpc.Status;
 
+import java.util.Optional;
+
 /**
  * gRPC сервис для работы с каталогом счетчиков.
  * Предоставляет API для доступа к каталогу счетчиков через gRPC протокол.
@@ -33,7 +35,24 @@ public class NamedServerCatalogueServiceGrpc extends ReactorCatalogueServiceGrpc
 
   @Override
   public Mono<CatalogueReplyValue> update(CatalogueUpdateRequest request) {
-    return super.update(request);
+    long id = request.getId();
+    return namedCatalogueService.update(id,
+      request.hasNewName() ? Optional.of(request.getNewName()) : Optional.empty(),
+      request.hasNewName() ? Optional.of(request.getNewDescription()) : Optional.empty())
+      .map(model -> CatalogueReplyValue.newBuilder()
+        .setValue(CatalogueInformation.newBuilder()
+          .setId(model.information().id())
+          .setName(model.information().name())
+          .build())
+        .setStatus(Status.SUCCESS)
+        .build())
+      .switchIfEmpty(Mono.just(CatalogueReplyValue.newBuilder()
+        .setStatus(Status.NOT_FOUND)
+        .build()))
+      .onErrorResume(throwable -> Mono.just(CatalogueReplyValue.newBuilder()
+        .setStatus(Status.FAILURE)
+        .setError(Error.newBuilder().setMessage(throwable.getMessage()).build())
+        .build()));
   }
 
   /**

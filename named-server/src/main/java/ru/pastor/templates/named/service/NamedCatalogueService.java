@@ -9,6 +9,8 @@ import ru.pastor.templates.named.mapper.CatalogueMapper;
 import ru.pastor.templates.named.model.CatalogueModel;
 import ru.pastor.templates.named.repository.CatalogueRepository;
 
+import java.util.Optional;
+
 /**
  * Сервис для работы с каталогом счетчиков.
  * Предоставляет методы для получения списка счетчиков и создания/обновления счетчиков.
@@ -38,6 +40,8 @@ public interface NamedCatalogueService {
    * @return информация о созданном/обновленном счетчике в виде Mono
    */
   Mono<CatalogueModel> createOrUpdate(String name, String description);
+
+  Mono<CatalogueModel> update(long id, Optional<String> name, Optional<String> description);
 
   /**
    * Стандартная реализация сервиса каталога счетчиков.
@@ -100,6 +104,13 @@ public interface NamedCatalogueService {
         .switchIfEmpty(Mono.defer(() -> catalogueRepository.create(name, description)
           .flatMap(entity -> catalogue.update(name, entity.id())
             .thenReturn(CatalogueMapper.INSTANCE.toModel(entity)))));
+    }
+
+    @Override
+    public Mono<CatalogueModel> update(long id, Optional<String> name, Optional<String> description) {
+      return catalogueRepository.update(id, name.orElse(null), description.orElse(null))
+        .map(CatalogueMapper.INSTANCE::toModel)
+        .switchIfEmpty(Mono.error(new IllegalArgumentException("Can't update")));
     }
   }
 }

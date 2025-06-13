@@ -37,6 +37,8 @@ public interface CatalogueRepository {
 
   Mono<CatalogueEntity> create(String name, String description);
 
+  Mono<CatalogueEntity> update(long id, String name, String description);
+
   /**
    * Запись для фильтрации элементов каталога.
    * В текущей реализации не содержит параметров фильтрации.
@@ -120,6 +122,35 @@ public interface CatalogueRepository {
           .build())
         .one()
         .as(tx::transactional);
+    }
+
+    @Override
+    public Mono<CatalogueEntity> update(long id, String name, String description) {
+      if (name != null) {
+        return client.sql("UPDATE named.counter_catalogue SET name = :name, updated = CURRENT_TIMESTAMP WHERE id = :id")
+          .bind("name", name)
+          .bind("id", id)
+          .fetch().rowsUpdated()
+          .flatMap(rowsUpdated -> {
+            if (description != null) {
+              return client.sql("UPDATE named.counter_catalogue SET description = :description WHERE id = :id")
+                .bind("description", description)
+                .bind("id", id)
+                .fetch().rowsUpdated();
+            }
+            return Mono.just(rowsUpdated);
+          })
+          .flatMap(rowsUpdated -> get(name))
+          .as(tx::transactional);
+      } else if (description != null) {
+        return client.sql("UPDATE named.counter_catalogue SET description = :description, updated = CURRENT_TIMESTAMP WHERE id = :id")
+          .bind("description", description)
+          .bind("id", id)
+          .fetch().rowsUpdated()
+          .flatMap(rowsUpdated -> get(name))
+          .as(tx::transactional);
+      }
+      return Mono.empty();
     }
   }
 

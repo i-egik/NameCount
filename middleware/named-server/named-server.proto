@@ -92,12 +92,8 @@ message CataloguePutRequest {
 }
 
 message CatalogueUpdateRequest {
-  oneof filter {
-    uint64 id = 1;
-    string name = 2;
-  }
-  reserved 3, 4, 5, 6, 7;
-  optional string description = 8;
+  uint64 id = 1;
+  optional string new_description = 8;
   optional string new_name = 9;
 }
 
