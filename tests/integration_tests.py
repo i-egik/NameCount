@@ -32,9 +32,10 @@ class Tests(unittest.TestCase):
     (ok, count_id) = self.nc.create_count(NAME)
     self.assertEqual(True, ok)
     self.assertIsNotNone(count_id)
-    (ok, update_count_id) = self.nc.update_count(count_id, TESTNAME)
+    (ok, struct) = self.nc.update_count(count_id, TESTNAME)
     self.assertEqual(True, ok)
-    self.assertIsNotNone(update_count_id)
+    self.assertIsNotNone(struct)
+    self.assertEqual(TESTNAME, struct[1])
 
   def test_increment(self):
     (ok, increment) = self.nc.increment(NAME)
