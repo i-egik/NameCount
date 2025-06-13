@@ -9,6 +9,7 @@ import ru.pastor.templates.named.server.grpc.CatalogueInformation;
 import ru.pastor.templates.named.server.grpc.CataloguePutRequest;
 import ru.pastor.templates.named.server.grpc.CatalogueReplyList;
 import ru.pastor.templates.named.server.grpc.CatalogueReplyValue;
+import ru.pastor.templates.named.server.grpc.CatalogueUpdateRequest;
 import ru.pastor.templates.named.server.grpc.Error;
 import ru.pastor.templates.named.server.grpc.ReactorCatalogueServiceGrpc;
 import ru.pastor.templates.named.server.grpc.Status;
@@ -29,6 +30,11 @@ public class NamedServerCatalogueServiceGrpc extends ReactorCatalogueServiceGrpc
    * Используется для выполнения операций с каталогом.
    */
   private final NamedCatalogueService namedCatalogueService;
+
+  @Override
+  public Mono<CatalogueReplyValue> update(CatalogueUpdateRequest request) {
+    return super.update(request);
+  }
 
   /**
    * Получает список счетчиков по параметрам фильтрации.

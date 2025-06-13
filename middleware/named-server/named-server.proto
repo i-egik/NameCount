@@ -91,10 +91,20 @@ message CataloguePutRequest {
   string description = 8;
 }
 
+message CatalogueUpdateRequest {
+  oneof filter {
+    uint64 id = 1;
+    string name = 2;
+  }
+  reserved 3, 4, 5, 6, 7;
+  optional string description = 8;
+  optional string new_name = 9;
+}
+
 service CatalogueService {
   //Получение списка счетчиков
   rpc List(CatalogueFilter) returns (CatalogueReplyList);
-  //TODO: Добавить метод для переименования счетчика в каталоге
   //Создание или обновление счетчика
   rpc Put(CataloguePutRequest) returns (CatalogueReplyValue);
+  rpc Update(CatalogueUpdateRequest) returns (CatalogueReplyValue);
 }
