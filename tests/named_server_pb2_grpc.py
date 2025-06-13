@@ -5,7 +5,7 @@ import warnings
 
 import named_server_pb2 as named__server__pb2
 
-GRPC_GENERATED_VERSION = '1.72.1'
+GRPC_GENERATED_VERSION = '1.73.0'
 GRPC_VERSION = grpc.__version__
 _version_not_supported = False
 
@@ -70,6 +70,8 @@ class CountServiceServicer(object):
 
     def Increment(self, request, context):
         """Запись значения
+        TODO: Добавить установку конкретного значения
+        TODO: Обнуление счетчика
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -205,6 +207,11 @@ class CatalogueServiceStub(object):
                 request_serializer=named__server__pb2.CataloguePutRequest.SerializeToString,
                 response_deserializer=named__server__pb2.CatalogueReplyValue.FromString,
                 _registered_method=True)
+        self.Update = channel.unary_unary(
+                '/named.CatalogueService/Update',
+                request_serializer=named__server__pb2.CatalogueUpdateRequest.SerializeToString,
+                response_deserializer=named__server__pb2.CatalogueReplyValue.FromString,
+                _registered_method=True)
 
 
 class CatalogueServiceServicer(object):
@@ -224,6 +231,12 @@ class CatalogueServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def Update(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_CatalogueServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -235,6 +248,11 @@ def add_CatalogueServiceServicer_to_server(servicer, server):
             'Put': grpc.unary_unary_rpc_method_handler(
                     servicer.Put,
                     request_deserializer=named__server__pb2.CataloguePutRequest.FromString,
+                    response_serializer=named__server__pb2.CatalogueReplyValue.SerializeToString,
+            ),
+            'Update': grpc.unary_unary_rpc_method_handler(
+                    servicer.Update,
+                    request_deserializer=named__server__pb2.CatalogueUpdateRequest.FromString,
                     response_serializer=named__server__pb2.CatalogueReplyValue.SerializeToString,
             ),
     }
@@ -291,6 +309,33 @@ class CatalogueService(object):
             target,
             '/named.CatalogueService/Put',
             named__server__pb2.CataloguePutRequest.SerializeToString,
+            named__server__pb2.CatalogueReplyValue.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def Update(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/named.CatalogueService/Update',
+            named__server__pb2.CatalogueUpdateRequest.SerializeToString,
             named__server__pb2.CatalogueReplyValue.FromString,
             options,
             channel_credentials,
