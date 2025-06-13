@@ -1,10 +1,11 @@
 import os
 import unittest
+from time import sleep
 
 import named_count
 
 NAME = 'TEST'
-
+TIMEOUT_SEC = 1
 
 class Tests(unittest.TestCase):
   @classmethod
@@ -37,6 +38,11 @@ class Tests(unittest.TestCase):
     self.assertEqual(True, ok)
     self.assertIsNotNone(increment)
     self.assertEqual(value + 1, increment)
+    sleep(TIMEOUT_SEC)
+    (ok, value) = self.pg.get(NAME)
+    self.assertEqual(True, ok)
+    self.assertIsNotNone(value)
+    self.assertEqual(increment, value)
 
 
 os.chdir("/Users/pastor/github/named-count")

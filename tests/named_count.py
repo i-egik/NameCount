@@ -46,20 +46,19 @@ class PgNamedCount:
     if self.connection:
       self.connection.close()
 
-  def execute_query(self, query, params=None, fetch=False):
+  def get(self, name: str, user_id: int = 123):
     try:
-      self.cursor.execute(query, params)
-      if fetch:
-        return self.cursor.fetchall()
-      self.connection.commit()
-      return True
+      self.cursor.execute("SELECT value FROM named.counter_values cv "
+                          "JOIN named.counter_catalogue cc ON cc.id = cv.counter_id "
+                          "WHERE cc.name = %s AND cv.user_id = %s", (name, user_id))
+      row = self.cursor.fetchone()
+      if row is None:
+        return False, -1
+      return True, int(row[0])
     except psycopg2.Error as e:
       self.connection.rollback()
       logger.error(f"Ошибка выполнения запроса: {e}")
-      return False
-
-  def get(self, name: str, user_id: int = 123):
-    pass
+      return False, -1
 
   def create_count(self, name: str, description: str = "тестовый"):
     try:

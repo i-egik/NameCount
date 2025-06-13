@@ -50,6 +50,8 @@ service CountService {
   rpc List(CountFilter) returns (stream CountValue);
   //Запись значения
   rpc Increment(CountIncrementRequest) returns(CountValue);
+  //TODO: Добавить установку конкретного значения
+  //TODO: Обнуление счетчика
 }
 
 message CatalogueFilter {
@@ -92,6 +94,7 @@ message CataloguePutRequest {
 service CatalogueService {
   //Получение списка счетчиков
   rpc List(CatalogueFilter) returns (CatalogueReplyList);
+  //TODO: Добавить метод для переименования счетчика в каталоге
   //Создание или обновление счетчика
   rpc Put(CataloguePutRequest) returns (CatalogueReplyValue);
 }

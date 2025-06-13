@@ -16,12 +16,13 @@ spring:
   data:
     redis:
       host: ${REDIS_HOSTNAME:redis}
+      port: ${REDIS_PORT:6379}
   jmx:
     enabled: true
 
 logging:
   level:
-    root: DEBUG
+    root: INFO
   charset:
     console: UTF-8
 
