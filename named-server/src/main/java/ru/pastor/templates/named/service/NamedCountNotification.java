@@ -29,6 +29,8 @@ import java.util.Optional;
 public interface NamedCountNotification {
   Mono<Void> update(long userId, long counterId, long value);
 
+  Mono<Void> reset(long userId, Integer ci, int i);
+
   @Slf4j
   @Service("NamedStream")
   class NamedStream implements NamedCountNotification {
@@ -72,6 +74,11 @@ public interface NamedCountNotification {
       return template.opsForStream().add(record)
         .doOnError(throwable -> log.error("Error while updating counter values", throwable))
         .then();
+    }
+
+    @Override
+    public Mono<Void> reset(long userId, Integer ci, int i) {
+      return update(userId, ci, i);
     }
 
     @SuppressWarnings("unchecked")

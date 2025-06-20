@@ -51,6 +51,23 @@ public class NamedServerCountServiceGrpc extends ReactorCountServiceGrpc.CountSe
         .build()));
   }
 
+  @Override
+  public Mono<CountValue> reset(CountFilter request) {
+    return namedCountService.reset(request.getName(), request.getUserId())
+      .map(v -> CountValue.newBuilder()
+        .setName(request.getName())
+        .setValue(v)
+        .setStatus(Status.SUCCESS)
+        .build())
+      .switchIfEmpty(Mono.just(CountValue.newBuilder()
+        .setStatus(Status.NOT_FOUND)
+        .build()))
+      .onErrorResume(throwable -> Mono.just(CountValue.newBuilder()
+        .setStatus(Status.FAILURE)
+        .setError(Error.newBuilder().setMessage(throwable.getMessage()).build())
+        .build()));
+  }
+
   /**
    * Получает список счетчиков по параметрам фильтрации.
    * В текущей реализации делегирует вызов родительскому методу, который возвращает пустой поток.

@@ -46,6 +46,8 @@ public interface NamedCache<K, V> {
 
   Mono<V> update(K key, V value);
 
+  Mono<V> reset(K key, V value);
+
   /**
    * Интерфейс для загрузки всех значений кэша.
    *
@@ -71,6 +73,11 @@ public interface NamedCache<K, V> {
    */
   @SuppressWarnings("AbstractClassName")
   abstract class ReadOnly<K, V> implements NamedCache<K, V> {
+
+    @Override
+    public Mono<V> reset(K key, V value) {
+      return Mono.just(value);
+    }
 
     /**
      * {@inheritDoc}
@@ -190,6 +197,13 @@ public interface NamedCache<K, V> {
     public Mono<V> update(K key, V value) {
       return delegate.update(key, value)
         .flatMap(v -> Mono.fromRunnable(() -> cache.put(key, v)).thenReturn(v));
+    }
+
+    @Override
+    public Mono<V> reset(K key, V value) {
+      return delegate.reset(key, value)
+        .flatMap(v -> Mono.fromRunnable(() -> cache.invalidate(key)))
+        .thenReturn(value);
     }
   }
 }

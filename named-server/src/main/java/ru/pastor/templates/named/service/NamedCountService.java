@@ -39,6 +39,8 @@ public interface NamedCountService {
    */
   Mono<Long> increment(String name, long userId, long delta);
 
+  Mono<Long> reset(String name, long userId);
+
   /**
    * Стандартная реализация сервиса именованных счетчиков.
    * Использует кэши для хранения значений счетчиков и каталога счетчиков.
@@ -104,6 +106,15 @@ public interface NamedCountService {
         .flatMap(newValue -> catalogue.get(name)
           .flatMap(ci -> notification.update(userId, ci, newValue.longValue())
             .thenReturn(newValue.longValue())));
+    }
+
+    @Override
+    public Mono<Long> reset(String name, long userId) {
+      return key(name, userId)
+        .flatMap(k -> values.reset(k, 0))
+        .flatMap(newValue -> catalogue.get(name)
+          .flatMap(ci -> notification.reset(userId, ci, 0)
+            .thenReturn(0L)));
     }
   }
 }

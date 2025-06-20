@@ -144,3 +144,17 @@ class NamedCount:
     else:
       logger.error(f"Ошибка обновления: {response.error.message}")
       return False, -1
+
+  def reset(self, name: str, user_id: int = 123):
+    response = self.count.Reset(
+      model.CountFilter(
+        user_id=user_id,
+        name=name
+      )
+    )
+    if response.status == model.Status.SUCCESS:
+      logger.debug(f"Текущее значение: {response.value}")
+      return True, response.value
+    else:
+      logger.error(f"Ошибка получения: {response.error.message}")
+      return False, -1

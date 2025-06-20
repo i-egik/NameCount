@@ -73,4 +73,9 @@ public final class Redis implements NamedCache<String, Integer> {
       .flatMap(v -> Mono.just(value))
       .doOnError(e -> onError(key, value, e));
   }
+
+  @Override
+  public Mono<Integer> reset(String key, Integer value) {
+    return update(key, value);
+  }
 }

@@ -44,6 +44,7 @@ enum Status {
 
 
 service CountService {
+  rpc Reset(CountFilter) returns (CountValue);
   //Получение значение конкретного счетчика
   rpc Get(CountFilter) returns (CountValue);
   //Получение всех счетчиков пользователя

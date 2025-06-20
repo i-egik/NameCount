@@ -39,7 +39,17 @@ public class TestConfiguration {
 
   @Bean
   public NamedCountNotification notification() {
-    return (userId, counterId, value) -> Mono.empty();
+    return new NamedCountNotification() {
+      @Override
+      public Mono<Void> update(long userId, long counterId, long value) {
+        return Mono.empty();
+      }
+
+      @Override
+      public Mono<Void> reset(long userId, Integer ci, int i) {
+        return Mono.empty();
+      }
+    };
   }
 
   @Bean

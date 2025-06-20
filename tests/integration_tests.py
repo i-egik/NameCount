@@ -6,7 +6,7 @@ import named_count
 
 NAME = 'TEST'
 TIMEOUT_SEC = 1
-TESTNAME = 'TESTUPDATE'
+TESTNAME = 'TESTUPDATE2'
 
 class Tests(unittest.TestCase):
   @classmethod
@@ -54,6 +54,18 @@ class Tests(unittest.TestCase):
     self.assertIsNotNone(value)
     self.assertEqual(increment, value)
 
+  def test_reset(self):
+    (ok, value) = self.nc.get(NAME)
+    self.assertEqual(True, ok)
+    self.assertIsNotNone(value)
+    (ok, reset) = self.nc.reset(NAME)
+    self.assertEqual(True, ok)
+    self.assertIsNotNone(reset)
+    self.assertEqual(0, reset)
+    (ok, value) = self.nc.get(NAME)
+    self.assertEqual(True, ok)
+    self.assertIsNotNone(value)
+    self.assertEqual(0, value)
 
 os.chdir("/Users/pastor/github/named-count")
 
