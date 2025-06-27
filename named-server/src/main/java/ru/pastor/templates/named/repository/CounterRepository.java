@@ -90,6 +90,7 @@ public interface CounterRepository {
         row.get("counter_id", Long.class).intValue(),
         row.get("name", String.class),
         row.get("description", String.class),
+        row.get("default_value", Long.class),
         row.get("catalogue_created", LocalDateTime.class),
         row.get("catalogue_updated", LocalDateTime.class)
       );
@@ -112,7 +113,7 @@ public interface CounterRepository {
     public Mono<CounterEntity> get(long counterId, long userId) {
       return client
         .sql("SELECT cv.id, cv.counter_id, cv.user_id, cv.\"value\", cv.created, cv.updated, " +
-          "cc.name, cc.description, cc.created as catalogue_created, cc.updated as catalogue_updated " +
+          "cc.name, cc.description, cc.default_value, cc.created as catalogue_created, cc.updated as catalogue_updated " +
           "FROM named.counter_values cv " +
           "JOIN named.counter_catalogue cc ON cv.counter_id = cc.id " +
           "WHERE cv.counter_id = :counterId AND cv.user_id = :userId")

@@ -12,6 +12,8 @@ import reactor.core.publisher.Mono;
 import ru.pastor.templates.named.repository.entity.CatalogueEntity;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
+import java.util.logging.Level;
 
 /**
  * Репозиторий для работы с каталогом счетчиков в базе данных.
@@ -35,9 +37,9 @@ public interface CatalogueRepository {
    */
   Mono<CatalogueEntity> get(String name);
 
-  Mono<CatalogueEntity> create(String name, String description);
+  Mono<CatalogueEntity> create(String name, String description, Long defaultValue);
 
-  Mono<CatalogueEntity> update(long id, String name, String description);
+  Mono<CatalogueEntity> update(long id, String name, String description, Long defaultValue);
 
   /**
    * Запись для фильтрации элементов каталога.
@@ -75,6 +77,7 @@ public interface CatalogueRepository {
         row.get("id", Integer.class),
         row.get("name", String.class),
         row.get("description", String.class),
+        row.get("default_value", Long.class),
         row.get("created", LocalDateTime.class),
         row.get("updated", LocalDateTime.class)
       );
@@ -88,7 +91,7 @@ public interface CatalogueRepository {
     @Override
     public Flux<CatalogueEntity> counters(Filter filter) {
       return client
-        .sql("SELECT id, name, description, created, updated FROM named.counter_catalogue")
+        .sql("SELECT id, name, description, default_value, created, updated FROM named.counter_catalogue")
         .map(Postgres::map)
         .all()
         .as(tx::transactional);
@@ -102,7 +105,7 @@ public interface CatalogueRepository {
     @Override
     public Mono<CatalogueEntity> get(String name) {
       return client
-        .sql("SELECT id, name, description, created, updated FROM named.counter_catalogue WHERE name = :name")
+        .sql("SELECT id, name, description, default_value, created, updated FROM named.counter_catalogue WHERE name = :name")
         .bind("name", name)
         .map(Postgres::map)
         .first()
@@ -110,22 +113,30 @@ public interface CatalogueRepository {
     }
 
     @Override
-    public Mono<CatalogueEntity> create(String name, String description) {
-      return client.sql("INSERT INTO named.counter_catalogue(name, description) VALUES(:name, :description)")
+    public Mono<CatalogueEntity> create(String name, String description, Long defaultValue) {
+      var spec = client.sql("INSERT INTO named.counter_catalogue(name, description, default_value) " +
+          "VALUES(:name, :description, :default_value)")
         .bind("name", name)
-        .bind("description", description)
+        .bind("description", description);
+      defaultValue = Objects.requireNonNullElse(defaultValue, 0L);
+      spec = spec.bind("default_value", defaultValue);
+      Long finalDefaultValue = defaultValue;
+      return spec
         .filter(stmt -> stmt.returnGeneratedValues("id"))
         .map(row -> CatalogueEntity.builder()
           .id(row.get("id", Integer.class))
           .name(name)
           .description(description)
+          .defaultValue(finalDefaultValue)
           .build())
         .one()
+        .log("CATALOGUE", Level.ALL, true)
         .as(tx::transactional);
     }
 
+    //FIXME: Надо создавать запрос исходя из переданных полей
     @Override
-    public Mono<CatalogueEntity> update(long id, String name, String description) {
+    public Mono<CatalogueEntity> update(long id, String name, String description, Long defaultValue) {
       if (name != null) {
         return client.sql("UPDATE named.counter_catalogue SET name = :name, updated = CURRENT_TIMESTAMP WHERE id = :id")
           .bind("name", name)
@@ -136,7 +147,16 @@ public interface CatalogueRepository {
               return client.sql("UPDATE named.counter_catalogue SET description = :description WHERE id = :id")
                 .bind("description", description)
                 .bind("id", id)
-                .fetch().rowsUpdated();
+                .fetch().rowsUpdated()
+                .flatMap(ru -> {
+                  if (defaultValue != null) {
+                    return client.sql("UPDATE named.counter_catalogue SET default_value = :default_value WHERE id = :id")
+                      .bind("default_value", defaultValue)
+                      .bind("id", id)
+                      .fetch().rowsUpdated();
+                  }
+                  return Mono.just(ru);
+                });
             }
             return Mono.just(rowsUpdated);
           })
@@ -147,11 +167,19 @@ public interface CatalogueRepository {
           .bind("description", description)
           .bind("id", id)
           .fetch().rowsUpdated()
+          .flatMap(ru -> {
+            if (defaultValue != null) {
+              return client.sql("UPDATE named.counter_catalogue SET default_value = :default_value WHERE id = :id")
+                .bind("default_value", defaultValue)
+                .bind("id", id)
+                .fetch().rowsUpdated();
+            }
+            return Mono.just(ru);
+          })
           .flatMap(rowsUpdated -> get(name))
           .as(tx::transactional);
       }
       return Mono.empty();
     }
   }
-
 }

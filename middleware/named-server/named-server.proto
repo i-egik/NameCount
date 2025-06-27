@@ -81,6 +81,7 @@ message CatalogueInformation {
   uint64 id = 1;
   string name = 2;
   string description = 3;
+  optional int64 default_value = 4;
 }
 
 message CataloguePutRequest {
@@ -90,12 +91,14 @@ message CataloguePutRequest {
   }
   reserved 3, 4, 5, 6, 7;
   string description = 8;
+  optional int64 default_value = 9;
 }
 
 message CatalogueUpdateRequest {
   uint64 id = 1;
   optional string new_description = 8;
   optional string new_name = 9;
+  optional int64 new_default_value = 10;
 }
 
 service CatalogueService {

@@ -37,6 +37,7 @@ public interface CatalogueMapper {
   @Mapping(source = "id", target = "information.id")
   @Mapping(source = "name", target = "information.name")
   @Mapping(source = "description", target = "description")
+  @Mapping(source = "defaultValue", target = "defaultValue")
   CatalogueModel toModel(CatalogueEntity entity);
 
   /**
@@ -49,5 +50,6 @@ public interface CatalogueMapper {
   @Mapping(source = "information.id", target = "id")
   @Mapping(source = "information.name", target = "name")
   @Mapping(source = "description", target = "description")
+  @Mapping(source = "defaultValue", target = "defaultValue")
   CatalogueEntity toEntity(CatalogueModel model);
 }

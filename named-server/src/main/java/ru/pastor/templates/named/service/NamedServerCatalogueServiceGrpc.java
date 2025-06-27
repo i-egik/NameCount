@@ -33,16 +33,20 @@ public class NamedServerCatalogueServiceGrpc extends ReactorCatalogueServiceGrpc
    */
   private final NamedCatalogueService namedCatalogueService;
 
+  //FIXME: Необходимо написать mapper из CatalogueModel в CatalogueInformation. При помощи MapStruct
+  //       (см. пример CatalogueMapper)
   @Override
   public Mono<CatalogueReplyValue> update(CatalogueUpdateRequest request) {
     long id = request.getId();
     return namedCatalogueService.update(id,
       request.hasNewName() ? Optional.of(request.getNewName()) : Optional.empty(),
-      request.hasNewName() ? Optional.of(request.getNewDescription()) : Optional.empty())
+      request.hasNewDescription() ? Optional.of(request.getNewDescription()) : Optional.empty(),
+        request.hasNewDefaultValue() ? Optional.of(request.getNewDefaultValue()) : Optional.empty())
       .map(model -> CatalogueReplyValue.newBuilder()
         .setValue(CatalogueInformation.newBuilder()
           .setId(model.information().id())
           .setName(model.information().name())
+          .setDefaultValue(model.defaultValue())
           .build())
         .setStatus(Status.SUCCESS)
         .build())
@@ -70,6 +74,7 @@ public class NamedServerCatalogueServiceGrpc extends ReactorCatalogueServiceGrpc
           .addValues(CatalogueInformation.newBuilder()
             .setId(model.information().id())
             .setName(model.information().name())
+            .setDefaultValue(model.defaultValue())
             .build())
           .build())
         .switchIfEmpty(Mono.just(CatalogueReplyList.newBuilder()
@@ -84,6 +89,7 @@ public class NamedServerCatalogueServiceGrpc extends ReactorCatalogueServiceGrpc
         .map(model -> CatalogueInformation.newBuilder()
           .setId(model.information().id())
           .setName(model.information().name())
+          .setDefaultValue(model.defaultValue())
           .build())
         .collectList().map(values -> CatalogueReplyList.newBuilder()
           .setStatus(Status.SUCCESS)
@@ -108,11 +114,13 @@ public class NamedServerCatalogueServiceGrpc extends ReactorCatalogueServiceGrpc
   @Override
   public Mono<CatalogueReplyValue> put(CataloguePutRequest request) {
     if (request.hasName()) {
-      return namedCatalogueService.createOrUpdate(request.getName(), request.getDescription())
+      return namedCatalogueService.createOrUpdate(request.getName(), request.getDescription(),
+          request.hasDefaultValue() ? request.getDefaultValue() : null)
         .map(model -> CatalogueReplyValue.newBuilder()
           .setValue(CatalogueInformation.newBuilder()
             .setId(model.information().id())
             .setName(model.information().name())
+            .setDefaultValue(model.defaultValue())
             .build())
           .setStatus(Status.SUCCESS)
           .build())

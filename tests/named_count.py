@@ -113,21 +113,23 @@ class NamedCount:
       logger.error(f"Ошибка инкремента: {increment_response.error.message}")
       return False, -1
 
-  def create_count(self, name: str, description: str = "тестовый"):
+  def create_count(self, name: str, description: str = "тестовый", default_value: int = 0):
     response = self.catalogue.Put(
       model.CataloguePutRequest(
         name=name,
-        description=description
+        description=description,
+        default_value=default_value
       )
     )
 
     if response.status == model.Status.SUCCESS:
       counter_id = response.value.id
-      logger.debug(f"Создан счетчик ID: {counter_id}")
-      return True, counter_id
+      default_value = response.value.default_value
+      logger.debug(f"Создан счетчик ID: {counter_id}, Значение по умолчанию: {default_value}")
+      return True, counter_id, default_value
     else:
       logger.error(f"Ошибка создания: {response.error.message}")
-      return False, -1
+      return False, -1, None
 
   def update_count(self, counter_id: int, name: str):
     response = self.catalogue.Update(

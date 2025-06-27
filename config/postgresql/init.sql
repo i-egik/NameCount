@@ -1,14 +1,15 @@
 CREATE DATABASE named_count ENCODING 'UTF-8';
 \c named_count
 CREATE SCHEMA named;
-SET search_path='named';
+SET search_path = 'named';
 CREATE TABLE counter_catalogue
 (
-  id          SERIAL PRIMARY KEY,
-  name        VARCHAR   NOT NULL,
-  description VARCHAR   NOT NULL,
-  created     TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updated     TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  id            SERIAL PRIMARY KEY,
+  name          VARCHAR   NOT NULL,
+  default_value BIGINT    NOT NULL DEFAULT 0,
+  description   VARCHAR   NOT NULL,
+  created       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   UNIQUE (name)
 );
 

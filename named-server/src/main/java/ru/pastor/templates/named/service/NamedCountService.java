@@ -108,6 +108,7 @@ public interface NamedCountService {
             .thenReturn(newValue.longValue())));
     }
 
+    //FIXME: Здесь надо выставлять не 0, а значение по умолчанию из counter_catalogue
     @Override
     public Mono<Long> reset(String name, long userId) {
       return key(name, userId)

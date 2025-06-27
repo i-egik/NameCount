@@ -1,12 +1,14 @@
 import os
 import unittest
+import uuid
 from time import sleep
 
 import named_count
 
 NAME = 'TEST'
 TIMEOUT_SEC = 1
-TESTNAME = 'TESTUPDATE2'
+TESTNAME = str(uuid.uuid4()).replace('-', '').upper()
+TEST_DEFAULT_VALUE = str(uuid.uuid4()).replace('-', '').upper()
 
 class Tests(unittest.TestCase):
   @classmethod
@@ -20,7 +22,7 @@ class Tests(unittest.TestCase):
     cls.pg.close()
 
   def test_create(self):
-    (ok, count_id) = self.nc.create_count(NAME)
+    (ok, count_id, default_value) = self.nc.create_count(NAME)
     self.assertEqual(True, ok)
     self.assertIsNotNone(count_id)
     (ok, pg_count_id) = self.pg.create_count(NAME)
@@ -28,8 +30,16 @@ class Tests(unittest.TestCase):
     self.assertIsNotNone(pg_count_id)
     self.assertEqual(count_id, pg_count_id)
 
+  def test_create_default_value(self):
+    (ok, count_id, default_value) = self.nc.create_count(
+      TEST_DEFAULT_VALUE, "with_default_value", 100)
+    self.assertEqual(True, ok)
+    self.assertIsNotNone(count_id)
+    self.assertIsNotNone(default_value)
+    self.assertEqual(100, default_value)
+
   def test_catalogue_update(self):
-    (ok, count_id) = self.nc.create_count(NAME)
+    (ok, count_id, default_value) = self.nc.create_count(NAME)
     self.assertEqual(True, ok)
     self.assertIsNotNone(count_id)
     (ok, struct) = self.nc.update_count(count_id, TESTNAME)

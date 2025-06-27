@@ -45,6 +45,7 @@ public abstract class BasisTestSuit {
           "  id SERIAL PRIMARY KEY," +
           "  name VARCHAR NOT NULL," +
           "  description VARCHAR NOT NULL," +
+          "  default_value BIGINT NOT NULL DEFAULT 0," +
           "  created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP," +
           "  updated TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP," +
           "  CONSTRAINT unique_name UNIQUE (name)" +

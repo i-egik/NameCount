@@ -51,7 +51,10 @@ public interface NamedCountNotification {
 
     @EventListener(ApplicationReadyEvent.class)
     private void ready() {
-      template.opsForStream().createGroup(STREAM_KEY, STREAM_GROUP_KEY).subscribe();
+      template.opsForStream().createGroup(STREAM_KEY, STREAM_GROUP_KEY)
+        .doOnError(throwable -> log.warn("{}:{} already exists", STREAM_KEY, STREAM_GROUP_KEY))
+        .onErrorResume(throwable -> Mono.empty())
+        .subscribe();
       streamMessages(STREAM_GROUP_KEY, STREAM_CONSUMER_KEY)
         .flatMap(message -> {
           Optional<ChangeValue> read = strategy.read(message);

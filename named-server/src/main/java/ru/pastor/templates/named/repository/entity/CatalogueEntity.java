@@ -29,6 +29,8 @@ public record CatalogueEntity(
    */
   String description,
 
+  Long defaultValue,
+
   /**
    * Дата и время создания элемента каталога.
    */

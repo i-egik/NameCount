@@ -21,7 +21,8 @@ public record CatalogueModel(
    * Описание счетчика.
    * Может быть null.
    */
-  String description) {
+  String description,
+  Long defaultValue) {
 
   /**
    * Внутренняя модель данных для хранения основной информации о счетчике.

@@ -39,9 +39,13 @@ public interface NamedCatalogueService {
    * @param description описание счетчика
    * @return информация о созданном/обновленном счетчике в виде Mono
    */
-  Mono<CatalogueModel> createOrUpdate(String name, String description);
+  Mono<CatalogueModel> createOrUpdate(String name, String description, Long defaultValue);
 
-  Mono<CatalogueModel> update(long id, Optional<String> name, Optional<String> description);
+  Mono<CatalogueModel> update(long id,
+                              Optional<String> name,
+                              Optional<String> description,
+                              Optional<Long> defaultValue
+                              );
 
   /**
    * Стандартная реализация сервиса каталога счетчиков.
@@ -94,21 +98,25 @@ public interface NamedCatalogueService {
      * Создает или обновляет счетчик с указанным именем и описанием.
      */
     @Override
-    public Mono<CatalogueModel> createOrUpdate(String name, String description) {
+    public Mono<CatalogueModel> createOrUpdate(String name, String description, Long defaultValue) {
       return catalogueRepository.get(name)
         .flatMap(entity -> {
+          //FIXME: Если такой счетчик в каталоге существует, то надо его обновить
+          //       сделать merge по полям
           int id = entity.id();
           return catalogue.update(name, id)
             .thenReturn(CatalogueMapper.INSTANCE.toModel(entity));
         })
-        .switchIfEmpty(Mono.defer(() -> catalogueRepository.create(name, description)
+        .switchIfEmpty(Mono.defer(() -> catalogueRepository.create(name, description, defaultValue)
           .flatMap(entity -> catalogue.update(name, entity.id())
             .thenReturn(CatalogueMapper.INSTANCE.toModel(entity)))));
     }
 
     @Override
-    public Mono<CatalogueModel> update(long id, Optional<String> name, Optional<String> description) {
-      return catalogueRepository.update(id, name.orElse(null), description.orElse(null))
+    public Mono<CatalogueModel> update(long id, Optional<String> name, Optional<String> description,
+                                       Optional<Long> defaultValue) {
+      return catalogueRepository.update(id, name.orElse(null),
+          description.orElse(null), defaultValue.orElse(null))
         .map(CatalogueMapper.INSTANCE::toModel)
         .switchIfEmpty(Mono.error(new IllegalArgumentException("Can't update")));
     }
